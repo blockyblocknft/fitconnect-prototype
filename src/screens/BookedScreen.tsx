@@ -18,7 +18,9 @@ export function BookedScreen() {
         </div>
       </div>
       {bookings.map((b) => (
-        <div key={b.id} role="button" onClick={() => nav.push({ name: 'programDetail', params: { id: b.id } })}
+        <div key={b.id} role="button" tabIndex={0}
+          onClick={() => nav.push({ name: 'programDetail', params: { id: b.id } })}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav.push({ name: 'programDetail', params: { id: b.id } }) } }}
           style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 12,
             marginBottom: 11, cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>

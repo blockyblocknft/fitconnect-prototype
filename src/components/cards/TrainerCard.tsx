@@ -7,7 +7,9 @@ export function TrainerCard({ trainer }: { trainer: Trainer }) {
   const nav = useNav()
   const loc = trainer.location
   return (
-    <div role="button" onClick={() => nav.push({ name: 'trainer', params: { id: trainer.id } })}
+    <div role="button" tabIndex={0}
+      onClick={() => nav.push({ name: 'trainer', params: { id: trainer.id } })}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav.push({ name: 'trainer', params: { id: trainer.id } }) } }}
       style={{ display: 'flex', gap: 10, padding: 10, border: '0.5px solid rgba(20,20,43,0.12)',
         borderRadius: 14, background: '#fff', marginBottom: 10, cursor: 'pointer' }}>
       <div style={{ width: 62, height: 62, borderRadius: 12, flex: '0 0 auto', background: 'var(--fc-indigo-tint)',

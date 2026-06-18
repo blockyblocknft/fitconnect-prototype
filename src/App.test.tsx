@@ -15,7 +15,7 @@ describe('App end-to-end Sessions→Booked', () => {
 
   it('reaches Log Meal from the bottom nav FAB', async () => {
     render(<App />)
-    await userEvent.click(screen.getByRole('button', { name: /log meal/i }))
+    await userEvent.click(screen.getByRole('button', { name: 'Log meal' }))
     expect(screen.getByText('/ 500 cal')).toBeInTheDocument()
   })
 })
