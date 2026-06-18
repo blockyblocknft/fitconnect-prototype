@@ -1,0 +1,10 @@
+* { box-sizing: border-box; }
+html, body, #root { margin: 0; height: 100%; }
+body {
+  font-family: var(--fc-font-body);
+  color: var(--fc-ink);
+  background: #E9E9F2;
+}
+button { font-family: var(--fc-font-body); cursor: pointer; }
+.fc-tabnum { font-variant-numeric: tabular-nums; }
+.fc-display { font-family: var(--fc-font-display); }

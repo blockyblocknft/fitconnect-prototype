@@ -1,0 +1,22 @@
+:root {
+  --fc-indigo: #5A4AE3;
+  --fc-coral: #FF6B4A;
+  --fc-green: #16B981;
+  --fc-ink: #14142B;
+  --fc-muted: #8A8A99;
+  --fc-surface: #F6F6FB;
+  --fc-white: #FFFFFF;
+  --fc-indigo-tint: #ECEAFB;
+  --fc-coral-tint: #FFE8E1;
+  --fc-rating-green: #16864F;
+  --fc-blue: #378ADD;
+  --fc-mist: #9DBFC4;
+
+  --fc-r-card: 16px;
+  --fc-r-sub: 14px;
+  --fc-r-btn: 12px;
+  --fc-r-pill: 999px;
+
+  --fc-font-display: 'Sora', system-ui, sans-serif;
+  --fc-font-body: 'Inter', system-ui, sans-serif;
+}
