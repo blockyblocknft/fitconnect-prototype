@@ -17,7 +17,7 @@ export function TopTabStrip() {
         const active = nav.activeTab === t.key
         const color = active ? 'var(--fc-indigo)' : 'var(--fc-muted)'
         return (
-          <button key={t.key} onClick={() => nav.setTab(t.key)}
+          <button key={t.key} onClick={() => nav.setTab(t.key)} aria-label={t.key}
             style={{ background: 'transparent', border: 'none', textAlign: 'center', flex: '0 0 auto',
               paddingBottom: 8, borderBottom: active ? '2.5px solid var(--fc-indigo)' : '2.5px solid transparent' }}>
             <Icon name={t.icon} size={19} color={color} />
