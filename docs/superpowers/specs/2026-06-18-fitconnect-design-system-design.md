@@ -71,10 +71,16 @@ Every screen inherits this skeleton; only content swaps.
 | **Trainer** | Clients · Sessions · Events · Reviews · Plans · Earnings |
 
 ### 4.2 Bottom nav
+Slimmed to **3 items** — top tabs already carry primary navigation, so the bottom nav holds only the most frequent global actions.
+
 | Role | Bottom nav |
 |---|---|
-| **Client** | Home · Schedule · **Log** (FAB) · Chat · Profile |
-| **Trainer** | Home · Roster · **+** (FAB: new session/program) · Chat · Profile |
+| **Client** | **Trainer** · **+** (Log meal, FAB) · **Profile** |
+| **Trainer** | **Clients** · **+** (new session/program, FAB) · **Profile** |
+
+- **Trainer** (client) → your trainer(s); **chat with your trainer lives here**. *(Confirm: messaging consolidated under Trainer.)*
+- **+** → quick **Log meal** for clients (camera or manual); quick create for trainers. Raised coral FAB.
+- **Profile** → account, settings.
 
 ---
 
@@ -145,6 +151,17 @@ Tapping a booked program → **Program detail** with a segmented toggle:
 
 ---
 
+## 9.5 Log Meal tab (client)
+
+"Track Food." Top-to-bottom:
+
+1. **Add food:** two entry points — **camera ("Snap")** for photo-based logging and **manual ("Add", `+`)**. Also reachable from the bottom-nav `+` FAB.
+2. **Calorie goal ring:** today's intake vs. a daily **calorie goal** (e.g. 320 / 500 cal).
+3. **Macro split:** **Protein · Fats · Carbs · Fibre**, each as a % (color-coded: protein indigo, fats coral, carbs green, fibre mist).
+4. **Today's trackers** (horizontal scroll, tappable to log/update): **Weight** (e.g. 71 kg) · **Workout** (e.g. 1/1 done) · **Steps** (e.g. 8k) · **Sleep** (e.g. 6 hr) · **Water** (e.g. 3.5 L).
+
+---
+
 ## 10. Community tab (client)
 
 App-wide community — the public, everyone-can-see feed/discussion. Distinct from the **per-program** community inside Booked (§9), which is private to a cohort. Internals (feed format, posting, moderation) to be detailed in follow-up brainstorming.
@@ -161,7 +178,6 @@ Reuses the same shell; top tabs become **Clients · Sessions · Events · Review
 
 These are named for navigation completeness but deliberately **not** detailed here; each gets its own brainstorming → spec cycle:
 
-- **Log Meal** tab (and the bottom-nav Log FAB flow).
 - **Progress** tab.
 - **Plans** tab.
 - **Community** tab internals.
@@ -182,3 +198,5 @@ These are named for navigation completeness but deliberately **not** detailed he
 - **Community:** **both** — app-wide `Community` top tab **and** a private per-program community inside Booked. *Decided.*
 - **Booked detail:** per-session **feedback + Q&A**, plus a per-program **general discussion** (Community sub-tab). *Decided.*
 - **Events:** surface in **both** the global Events tab and under each trainer. *Decided.*
+- **Log Meal:** camera + manual add, calorie goal ring, macro split (Protein/Fats/Carbs/Fibre %), trackers (Weight/Workout/Steps/Sleep/Water). *Decided.*
+- **Bottom nav:** slimmed to 3 — **Trainer · + (Log meal) · Profile**. *Decided.* Open: confirm chat lives under Trainer.
