@@ -78,7 +78,7 @@ Slimmed to **3 items** — top tabs already carry primary navigation, so the bot
 | **Client** | **Trainer** · **+** (Log meal, FAB) · **Profile** |
 | **Trainer** | **Clients** · **+** (new session/program, FAB) · **Profile** |
 
-- **Trainer** (client) → your trainer(s); **chat with your trainer lives here**. *(Confirm: messaging consolidated under Trainer.)*
+- **Trainer** (client) → your trainer(s); **chat with your trainer lives here** (messaging consolidated under Trainer — no separate Chat tab).
 - **+** → quick **Log meal** for clients (camera or manual); quick create for trainers. Raised coral FAB.
 - **Profile** → account, settings.
 
@@ -199,4 +199,5 @@ These are named for navigation completeness but deliberately **not** detailed he
 - **Booked detail:** per-session **feedback + Q&A**, plus a per-program **general discussion** (Community sub-tab). *Decided.*
 - **Events:** surface in **both** the global Events tab and under each trainer. *Decided.*
 - **Log Meal:** camera + manual add, calorie goal ring, macro split (Protein/Fats/Carbs/Fibre %), trackers (Weight/Workout/Steps/Sleep/Water). *Decided.*
-- **Bottom nav:** slimmed to 3 — **Trainer · + (Log meal) · Profile**. *Decided.* Open: confirm chat lives under Trainer.
+- **Bottom nav:** slimmed to 3 — **Trainer · + (Log meal) · Profile**. *Decided.*
+- **Messaging:** chat with your trainer lives under the **Trainer** bottom-nav item (no separate Chat tab). *Decided.*
