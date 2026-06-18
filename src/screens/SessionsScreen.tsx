@@ -20,10 +20,11 @@ export function SessionsScreen() {
       <SegmentedToggle options={[{ value: '1to1', label: '1-to-1' }, { value: 'group', label: 'Group' }]}
         value={mode} onChange={setMode} />
       <div style={{ display: 'flex', gap: 7, overflowX: 'auto', margin: '12px 0 13px' }}>
-        {['Filter', 'Near me', 'Online', 'International'].map((c) => (
-          <span key={c} style={{ flex: '0 0 auto', fontSize: 11, fontWeight: 500, color: '#55555f',
-            border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 999, padding: '5px 11px', background: '#fff' }}>{c}</span>
-        ))}
+        <span style={{ flex: '0 0 auto', fontSize: 11, fontWeight: 500, color: '#55555f',
+          border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 999, padding: '5px 11px', background: '#fff',
+          display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+          <Icon name="adjustments-horizontal" size={13} color="#55555f" />Filter
+        </span>
       </div>
       {mode === '1to1'
         ? list.map((t) => <TrainerCard key={t.id} trainer={t} />)
