@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useNav } from '../../nav/NavContext'
 import { trainerSessions, requests, todayStats } from '../../data/trainerView'
 import { Icon } from '../../components/Icon'
@@ -15,6 +16,9 @@ export function TrainerTodayScreen() {
   const nav = useNav()
   const s = todayStats()
   const today = trainerSessions.filter((x) => x.today)
+  const [pending, setPending] = useState(requests)
+  const [resolved, setResolved] = useState<{ id: string; verb: string } | null>(null)
+  const resolve = (id: string, verb: string) => { setPending((p) => p.filter((r) => r.id !== id)); setResolved({ id, verb }) }
   return (
     <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1 }}>
       <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13, marginBottom: 12 }}>
@@ -32,7 +36,12 @@ export function TrainerTodayScreen() {
         <div style={{ marginBottom: 10 }}>
           <span className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>Requests · awaiting confirmation</span>
         </div>
-        {requests.map((r) => (
+        {pending.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: 'var(--fc-muted)', padding: '4px 0' }}>
+            <Icon name="circle-check" size={15} color="var(--fc-green)" />
+            {resolved ? `Request ${resolved.verb}. All caught up.` : 'All caught up — no pending requests.'}
+          </div>
+        ) : pending.map((r) => (
           <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
             borderTop: '0.5px solid rgba(20,20,43,0.08)' }}>
             <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)',
@@ -41,8 +50,8 @@ export function TrainerTodayScreen() {
               <div style={{ fontSize: 12, fontWeight: 600 }}>{r.client}</div>
               <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{r.session} · {r.time}</div>
             </div>
-            <button aria-label="Confirm" style={{ background: 'var(--fc-green)', color: '#fff', border: 'none', borderRadius: 9, padding: '6px 8px', fontSize: 11, fontWeight: 600 }}>Confirm</button>
-            <button aria-label="Decline" style={{ background: 'transparent', color: '#A32D2D', border: '1px solid #F09595', borderRadius: 9, padding: '6px 8px', fontSize: 11, fontWeight: 600 }}>Decline</button>
+            <button aria-label="Confirm" onClick={() => resolve(r.id, 'confirmed')} style={{ background: 'var(--fc-green)', color: '#fff', border: 'none', borderRadius: 9, padding: '6px 8px', fontSize: 11, fontWeight: 600 }}>Confirm</button>
+            <button aria-label="Decline" onClick={() => resolve(r.id, 'declined')} style={{ background: 'transparent', color: '#A32D2D', border: '1px solid #F09595', borderRadius: 9, padding: '6px 8px', fontSize: 11, fontWeight: 600 }}>Decline</button>
           </div>
         ))}
       </div>

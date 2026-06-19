@@ -6,20 +6,28 @@ const inputStyle: React.CSSProperties = {
   width: '100%', border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 9, padding: '8px 10px',
   fontSize: 12, fontFamily: 'var(--fc-font-body)', outline: 'none',
 }
-const num = (v: string) => Math.max(1, Math.round(Number(v) || 1))
+const num = (v: string, min: number) => Math.max(min, Math.round(Number(v) || min))
 
-export function SessionFormModal({ onClose, onSave }: { onClose: () => void; onSave: (s: TrainerSession) => void }) {
-  const [title, setTitle] = useState('')
-  const [time, setTime] = useState('Tomorrow · 6:00 AM')
-  const [mode, setMode] = useState<'online' | 'inperson'>('inperson')
-  const [place, setPlace] = useState('')
-  const [capacity, setCapacity] = useState('10')
+export function SessionFormModal(
+  { onClose, onSave, session }: { onClose: () => void; onSave: (s: TrainerSession) => void; session?: TrainerSession },
+) {
+  const editing = !!session
+  const booked = session?.clients.length ?? 0
+  const [title, setTitle] = useState(session?.title ?? '')
+  const [time, setTime] = useState(session?.time ?? 'Tomorrow · 6:00 AM')
+  const [mode, setMode] = useState<'online' | 'inperson'>(session?.mode ?? 'inperson')
+  const [place, setPlace] = useState(session?.place ?? '')
+  const [capacity, setCapacity] = useState(String(session?.capacity ?? 10))
+
+  // Capacity can never drop below the number of clients already booked.
+  const minCap = Math.max(1, booked)
 
   const save = () => {
     if (!title.trim()) return
     onSave({
-      id: `ts-${Date.now()}`, title: title.trim(), time, today: time.startsWith('Today'),
-      mode, place: place.trim() || (mode === 'online' ? 'Google Meet' : 'TBD'), capacity: num(capacity), clients: [],
+      id: session?.id ?? `ts-${Date.now()}`, title: title.trim(), time, today: time.startsWith('Today'),
+      mode, place: place.trim() || (mode === 'online' ? 'Google Meet' : 'TBD'),
+      capacity: num(capacity, minCap), clients: session?.clients ?? [],
     })
   }
 
@@ -35,7 +43,7 @@ export function SessionFormModal({ onClose, onSave }: { onClose: () => void; onS
       <div onClick={(e) => e.stopPropagation()} style={{ background: '#fff', borderTopLeftRadius: 18, borderTopRightRadius: 18,
         padding: 16, width: '100%', maxHeight: '92%', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-          <span className="fc-display" style={{ fontSize: 15, fontWeight: 700 }}>Create session</span>
+          <span className="fc-display" style={{ fontSize: 15, fontWeight: 700 }}>{editing ? 'Edit session' : 'Create session'}</span>
           <button onClick={onClose} aria-label="Close" style={{ background: 'transparent', border: 'none' }}>
             <Icon name="x" size={18} color="var(--fc-muted)" />
           </button>
@@ -56,11 +64,19 @@ export function SessionFormModal({ onClose, onSave }: { onClose: () => void; onS
         {field(mode === 'online' ? 'Meeting link' : 'Location',
           <input value={place} onChange={(e) => setPlace(e.target.value)}
             placeholder={mode === 'online' ? 'Google Meet link' : 'e.g. Indiranagar studio'} style={inputStyle} />)}
-        {field('Capacity', <input value={capacity} onChange={(e) => setCapacity(e.target.value)} inputMode="numeric" style={inputStyle} />)}
+        {field('Capacity', (
+          <>
+            <input value={capacity} onChange={(e) => setCapacity(e.target.value)} inputMode="numeric" style={inputStyle} />
+            {editing && booked > 0 && (
+              <div style={{ fontSize: 10, color: 'var(--fc-muted)', marginTop: 3 }}>{booked} already booked · can’t go below this</div>
+            )}
+          </>
+        ))}
 
         <button onClick={save} disabled={!title.trim()}
           style={{ width: '100%', marginTop: 5, background: title.trim() ? 'var(--fc-indigo)' : 'rgba(90,74,227,0.4)', color: '#fff',
-            border: 'none', borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600 }}>Create session</button>
+            border: 'none', borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600 }}>
+          {editing ? 'Save changes' : 'Create session'}</button>
       </div>
     </div>
   )

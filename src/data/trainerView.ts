@@ -73,3 +73,26 @@ export function getTrainerSession(id: string) {
 export function addTrainerSession(s: TrainerSession) {
   trainerSessions.unshift(s)
 }
+export function updateTrainerSession(id: string, patch: Partial<TrainerSession>) {
+  const s = trainerSessions.find((x) => x.id === id)
+  if (s) Object.assign(s, patch)
+}
+export function removeTrainerSession(id: string) {
+  const i = trainerSessions.findIndex((x) => x.id === id)
+  if (i >= 0) trainerSessions.splice(i, 1)
+}
+
+// Clients the trainer can manually book into a session.
+export const clientPool: { id: string; name: string; initials: string }[] = [
+  { id: 'p1', name: 'Sneha M.', initials: 'SM' },
+  { id: 'p2', name: 'Arjun D.', initials: 'AD' },
+  { id: 'p3', name: 'Kavya R.', initials: 'KR' },
+  { id: 'p4', name: 'Rohan B.', initials: 'RB' },
+  { id: 'p5', name: 'Divya P.', initials: 'DP' },
+]
+export function addClientToSession(sessionId: string, client: { id: string; name: string; initials: string }) {
+  const s = getTrainerSession(sessionId)
+  if (s && s.clients.length < s.capacity && !s.clients.some((c) => c.id === client.id)) {
+    s.clients.push({ ...client, attendance: 'confirmed' })
+  }
+}

@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { getTrainerSession, type Attendance } from '../../data/trainerView'
-import { AUDIT } from '../../data/auditNotes'
-import { AuditButton } from '../../components/AuditButton'
+import { getTrainerSession, addClientToSession, type Attendance } from '../../data/trainerView'
+import { BookClientModal } from '../../components/trainer/BookClientModal'
 import { Icon } from '../../components/Icon'
 
 export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
@@ -9,6 +8,9 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
   const [marks, setMarks] = useState<Record<string, Attendance>>(
     () => Object.fromEntries((session?.clients ?? []).map((c) => [c.id, c.attendance])),
   )
+  const [showBook, setShowBook] = useState(false)
+  const [completed, setCompleted] = useState(false)
+  const [, force] = useState(0)
   if (!session) return <div style={{ padding: 16 }}>Session not found</div>
 
   const open = session.capacity - session.clients.length
@@ -17,21 +19,27 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--fc-surface)' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: 13 }}>
         <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 12 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <div className="fc-display" style={{ fontSize: 15, fontWeight: 700 }}>{session.title}</div>
-              <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Icon name={session.mode === 'online' ? 'video' : 'map-pin'} size={12} color="var(--fc-muted)" />{session.time} · {session.place}
-              </div>
+          <div>
+            <div className="fc-display" style={{ fontSize: 15, fontWeight: 700 }}>{session.title}</div>
+            <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Icon name={session.mode === 'online' ? 'video' : 'map-pin'} size={12} color="var(--fc-muted)" />{session.time} · {session.place}
             </div>
-            <AuditButton note={AUDIT.attendance} />
           </div>
           <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 9 }}>
             <b style={{ color: 'var(--fc-ink)' }}>{session.clients.length}</b> booked · <b style={{ color: 'var(--fc-ink)' }}>{open}</b> open
           </div>
         </div>
 
-        <div className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 9 }}>ROSTER</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
+          <span className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)' }}>ROSTER</span>
+          <button onClick={() => setShowBook(true)} disabled={open <= 0}
+            style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', borderRadius: 8, padding: '5px 9px',
+              fontSize: 11, fontWeight: 600, background: open > 0 ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)',
+              color: open > 0 ? 'var(--fc-indigo)' : '#B5B5BE' }}>
+            <Icon name="plus" size={13} color={open > 0 ? 'var(--fc-indigo)' : '#B5B5BE'} /> Book a client
+          </button>
+        </div>
+
         {session.clients.map((c) => {
           const mark = marks[c.id]
           const set = (a: Attendance) => setMarks((m) => ({ ...m, [c.id]: a }))
@@ -53,9 +61,20 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
       </div>
 
       <div style={{ padding: '10px 13px', background: '#fff', borderTop: '0.5px solid rgba(20,20,43,0.10)' }}>
-        <button style={{ width: '100%', background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 13,
-          padding: 13, fontSize: 14, fontWeight: 600 }}>Mark session completed</button>
+        <button onClick={() => setCompleted(true)} disabled={completed}
+          style={{ width: '100%', background: completed ? 'var(--fc-surface)' : 'var(--fc-indigo)', color: completed ? 'var(--fc-green)' : '#fff',
+            border: 'none', borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          {completed && <Icon name="circle-check" size={17} color="var(--fc-green)" />}
+          {completed ? 'Session completed' : 'Mark session completed'}
+        </button>
       </div>
+
+      {showBook && (
+        <BookClientModal excludeIds={session.clients.map((c) => c.id)}
+          onClose={() => setShowBook(false)}
+          onPick={(c) => { addClientToSession(session.id, c); setMarks((m) => ({ ...m, [c.id]: 'confirmed' })); setShowBook(false); force((n) => n + 1) }} />
+      )}
     </div>
   )
 }
