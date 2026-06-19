@@ -1,12 +1,11 @@
 import type { MealDay } from '../lib/types'
 
 export const mealDay: MealDay = {
-  caloriesEaten: 320, caloriesGoal: 500,
-  macros: [
-    { label: 'Protein', pct: 28, color: 'var(--fc-indigo)' },
-    { label: 'Fats', pct: 22, color: 'var(--fc-coral)' },
-    { label: 'Carbs', pct: 45, color: 'var(--fc-green)' },
-    { label: 'Fibre', pct: 5, color: 'var(--fc-mist)' },
+  targets: { calories: 500, protein: 40, carbs: 50, fats: 20 },
+  meals: [
+    { id: 'lm1', type: 'Breakfast', time: '8:30 AM', name: 'Oats + eggs', cal: 220, protein: 18, carbs: 24, fats: 8,
+      trainerComment: 'Great protein start 👍' },
+    { id: 'lm2', type: 'Snack', time: '11:00 AM', name: 'Banana', cal: 100, protein: 1, carbs: 23, fats: 0 },
   ],
   trackers: [
     { key: 'weight', label: 'Weight', value: '71 kg', icon: 'scale', color: 'var(--fc-indigo)' },

@@ -2,7 +2,7 @@ import type { Booking } from '../lib/types'
 
 export const bookings: Booking[] = [
   {
-    id: 'b1', programName: '12-Week Strength Builder', trainerName: 'Aanand R.',
+    id: 'b1', programName: '12-Week Strength Builder', trainerName: 'Aanand R.', status: 'confirmed',
     progressKind: 'weeks', current: 3, total: 12,
     meetLink: 'https://meet.google.com/abc-defg-hij',
     sessions: [
@@ -21,7 +21,7 @@ export const bookings: Booking[] = [
     ],
   },
   {
-    id: 'b2', programName: 'Daily mobility flow', trainerName: 'Sara M.',
+    id: 'b2', programName: 'Daily mobility flow', trainerName: 'Sara M.', status: 'awaiting',
     progressKind: 'days', current: 9, total: 30,
     meetLink: 'https://meet.google.com/xyz-mnop-qrs',
     sessions: [

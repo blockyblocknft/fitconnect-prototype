@@ -73,10 +73,12 @@ export interface BookedSession {
   feedback?: string
   qa: QA[]
 }
+export type BookingStatus = 'awaiting' | 'confirmed' | 'cancelled'
 export interface Booking {
   id: string
   programName: string
   trainerName: string
+  status: BookingStatus
   progressKind: 'weeks' | 'days'
   current: number
   total: number
@@ -84,6 +86,24 @@ export interface Booking {
   sessions: BookedSession[]
 }
 
-export interface Macro { label: string; pct: number; color: string }
 export interface Tracker { key: string; label: string; value: string; icon: string; color: string }
-export interface MealDay { caloriesEaten: number; caloriesGoal: number; macros: Macro[]; trackers: Tracker[] }
+
+export type MealType = 'Breakfast' | 'Lunch' | 'Dinner' | 'Snack'
+export interface LoggedMeal {
+  id: string
+  type: MealType
+  time: string
+  name: string
+  cal: number
+  protein: number
+  carbs: number
+  fats: number
+  notes?: string
+  trainerComment?: string
+}
+export interface NutritionTargets { calories: number; protein: number; carbs: number; fats: number }
+export interface MealDay {
+  targets: NutritionTargets
+  trackers: Tracker[]
+  meals: LoggedMeal[]
+}

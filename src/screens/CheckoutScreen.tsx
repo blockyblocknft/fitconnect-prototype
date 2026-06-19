@@ -36,6 +36,13 @@ export function CheckoutScreen({ programId }: { programId: string }) {
           <span className="fc-tabnum" style={{ fontSize: 11, color: 'var(--fc-muted)' }}>{rupees(balance)}</span>
         </div>
       </div>
+      <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start', background: '#FAEEDA', borderRadius: 10,
+        padding: '9px 11px', marginBottom: 11 }}>
+        <Icon name="clock" size={14} color="#854F0B" />
+        <div style={{ fontSize: 11, color: '#854F0B', lineHeight: 1.5 }}>
+          This sends a <b>request</b> to {t.name}. Your advance is <b>held</b> until they confirm — you’ll be notified.
+        </div>
+      </div>
       <Button full style={{ padding: 12, fontSize: 14 }}
         onClick={() => nav.push({ name: 'bookingConfirm', params: { programId } })}>
         Pay advance {rupees(advance)}

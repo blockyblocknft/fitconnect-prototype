@@ -10,6 +10,12 @@ const SEG: Record<BookedSession['status'], string> = {
   upcoming: 'var(--fc-indigo-tint)',
 }
 
+const BOOKING_STATUS = {
+  awaiting: { label: 'Awaiting confirmation', bg: '#FAEEDA', fg: '#854F0B' },
+  confirmed: { label: 'Confirmed', bg: '#E4F3EA', fg: 'var(--fc-rating-green)' },
+  cancelled: { label: 'Cancelled', bg: '#FCEBEB', fg: '#A32D2D' },
+} as const
+
 export function BookedScreen() {
   const nav = useNav()
   const openProgram = (id: string) => nav.push({ name: 'programDetail', params: { id } })
@@ -28,7 +34,11 @@ export function BookedScreen() {
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProgram(b.id) } }}
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
               <div style={{ minWidth: 0 }}>
-                <div className="fc-display" style={{ fontSize: 14, fontWeight: 600 }}>{b.programName}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                  <span className="fc-display" style={{ fontSize: 14, fontWeight: 600 }}>{b.programName}</span>
+                  <span style={{ fontSize: 9, fontWeight: 600, color: BOOKING_STATUS[b.status].fg,
+                    background: BOOKING_STATUS[b.status].bg, padding: '2px 8px', borderRadius: 999 }}>{BOOKING_STATUS[b.status].label}</span>
+                </div>
                 <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 1 }}>with {b.trainerName}</div>
               </div>
               <Icon name="chevron-right" size={18} color="#C4C4CF" />
