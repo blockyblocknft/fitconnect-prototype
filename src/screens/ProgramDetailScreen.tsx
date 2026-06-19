@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { getBooking } from '../data/bookings'
+import { getBooking, cancelBooking } from '../data/bookings'
+import { useNav } from '../nav/NavContext'
 import type { BookedSession } from '../lib/types'
 import { SegmentedToggle } from '../components/SegmentedToggle'
 import { SessionItem } from '../components/cards/SessionItem'
@@ -35,7 +36,9 @@ function ScheduleChip({ s }: { s: BookedSession }) {
 }
 
 export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: string; focusSessionId?: string }) {
+  const nav = useNav()
   const [view, setView] = useState<'qa' | 'community'>('qa')
+  const [, force] = useState(0)
   const b = getBooking(bookingId)
 
   useEffect(() => {
@@ -44,9 +47,31 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
 
   if (!b) return <div style={{ padding: 16 }}>Not found</div>
 
+  const cancelled = b.status === 'cancelled'
+  const onCancel = () => {
+    if (window.confirm('Cancel this booking? Free before the 24h cutoff; your advance is refunded.')) {
+      cancelBooking(b.id)
+      force((n) => n + 1)
+    }
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--fc-surface)' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: 13 }}>
+        {b.status === 'awaiting' && (
+          <div style={{ display: 'flex', gap: 7, alignItems: 'center', background: '#FAEEDA', borderRadius: 10,
+            padding: '9px 11px', marginBottom: 12 }}>
+            <Icon name="clock" size={14} color="#854F0B" />
+            <div style={{ fontSize: 11, color: '#854F0B' }}>Awaiting {b.trainerName}’s confirmation — advance held.</div>
+          </div>
+        )}
+        {cancelled && (
+          <div style={{ display: 'flex', gap: 7, alignItems: 'center', background: '#FCEBEB', borderRadius: 10,
+            padding: '9px 11px', marginBottom: 12 }}>
+            <Icon name="x" size={14} color="#A32D2D" />
+            <div style={{ fontSize: 11, color: '#A32D2D' }}>Booking cancelled — advance refunded.</div>
+          </div>
+        )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
           <span className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)' }}>SESSIONS</span>
           <span style={{ fontSize: 10, color: 'var(--fc-muted)', display: 'flex', gap: 9 }}>
@@ -89,11 +114,22 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
       </div>
 
       <div style={{ padding: '10px 13px', background: '#fff', borderTop: '0.5px solid rgba(20,20,43,0.10)' }}>
-        <a href={b.meetLink} target="_blank" rel="noreferrer"
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none',
-            background: 'var(--fc-indigo)', color: '#fff', borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600 }}>
-          <Icon name="video" size={18} color="#fff" /> Join on Google Meet
-        </a>
+        {cancelled ? (
+          <button onClick={() => nav.pop()}
+            style={{ width: '100%', background: 'var(--fc-surface)', color: 'var(--fc-muted)', border: 'none',
+              borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600 }}>Back to Booked</button>
+        ) : (
+          <>
+            <a href={b.meetLink} target="_blank" rel="noreferrer"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, textDecoration: 'none',
+                background: 'var(--fc-indigo)', color: '#fff', borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600 }}>
+              <Icon name="video" size={18} color="#fff" /> Join on Google Meet
+            </a>
+            <button onClick={onCancel}
+              style={{ width: '100%', background: 'transparent', color: '#A32D2D', border: 'none', marginTop: 7,
+                fontSize: 12, fontWeight: 600 }}>Cancel booking · free before cutoff</button>
+          </>
+        )}
       </div>
     </div>
   )

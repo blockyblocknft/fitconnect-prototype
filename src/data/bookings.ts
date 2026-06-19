@@ -36,3 +36,7 @@ export const bookings: Booking[] = [
 export function getBooking(id: string) {
   return bookings.find((b) => b.id === id)
 }
+export function cancelBooking(id: string) {
+  const b = bookings.find((x) => x.id === id)
+  if (b) b.status = 'cancelled'
+}

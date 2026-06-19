@@ -11,6 +11,9 @@ const STATUS = {
 
 export function SessionItem({ session }: { session: BookedSession }) {
   const [draft, setDraft] = useState('')
+  const [rating, setRating] = useState(0)
+  const [note, setNote] = useState('')
+  const [sent, setSent] = useState(false)
   const s = STATUS[session.status]
   const askable = session.status === 'upcoming' || session.status === 'inprogress'
   return (
@@ -48,6 +51,32 @@ export function SessionItem({ session }: { session: BookedSession }) {
             <Icon name="send" size={15} color="var(--fc-indigo)" />
           </button>
         </div>
+      )}
+      {session.status === 'attended' && (
+        sent ? (
+          <div style={{ background: '#F0FAF4', borderRadius: 10, padding: '7px 10px', marginTop: 7, fontSize: 11,
+            color: 'var(--fc-rating-green)', fontWeight: 600 }}>Thanks — your rating was sent.</div>
+        ) : (
+          <div style={{ background: 'var(--fc-surface)', borderRadius: 10, padding: '8px 10px', marginTop: 7 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 5 }}>Rate this session</div>
+            <div style={{ display: 'flex', gap: 3, marginBottom: 6 }}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} aria-label={`${n} star`} onClick={() => setRating(n)}
+                  style={{ background: 'transparent', border: 'none', padding: 0, lineHeight: 0 }}>
+                  <Icon name="star" size={18} color={n <= rating ? '#EF9F27' : '#D3D1C7'} />
+                </button>
+              ))}
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+              <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Add a note (optional)…"
+                style={{ flex: 1, border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 8, padding: '6px 9px',
+                  fontSize: 11, outline: 'none', background: '#fff' }} />
+              <button onClick={() => rating > 0 && setSent(true)} disabled={rating === 0}
+                style={{ background: rating > 0 ? 'var(--fc-indigo)' : 'rgba(90,74,227,0.4)', color: '#fff', border: 'none',
+                  borderRadius: 8, padding: '6px 12px', fontSize: 11, fontWeight: 600 }}>Submit</button>
+            </div>
+          </div>
+        )
       )}
     </div>
   )

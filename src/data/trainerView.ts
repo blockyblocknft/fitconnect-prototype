@@ -70,3 +70,6 @@ export function todayStats() {
 export function getTrainerSession(id: string) {
   return trainerSessions.find((s) => s.id === id)
 }
+export function addTrainerSession(s: TrainerSession) {
+  trainerSessions.unshift(s)
+}
