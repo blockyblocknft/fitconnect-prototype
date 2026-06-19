@@ -1,14 +1,56 @@
+import { useState } from 'react'
+import type { SessionType } from '../lib/types'
 import { getTrainer } from '../data/trainers'
-import { ProgramCard } from '../components/cards/ProgramCard'
+import { OfferingCard, type Offering, type OfferingKind } from '../components/cards/OfferingCard'
 import { Icon } from '../components/Icon'
 import { RatingPill } from '../components/RatingPill'
-import { CapacityBar } from '../components/CapacityBar'
 
-export function TrainerScreen({ trainerId }: { trainerId: string }) {
+type FilterKey = 'all' | OfferingKind
+const ALL_FILTERS: { key: FilterKey; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'trial', label: 'Trial' },
+  { key: 'daily', label: 'Daily' },
+  { key: 'weekly', label: 'Weekly' },
+  { key: 'group', label: 'Group' },
+  { key: 'event', label: 'Events' },
+]
+
+// Which offering kinds belong to each browse mode.
+const MODE_KINDS: Record<SessionType, OfferingKind[]> = {
+  '1to1': ['trial', 'daily', 'weekly'],
+  group: ['group', 'event'],
+}
+
+export function TrainerScreen({ trainerId, mode }: { trainerId: string; mode?: SessionType }) {
+  const [filter, setFilter] = useState<FilterKey>('all')
   const t = getTrainer(trainerId)
   if (!t) return <div style={{ padding: 16 }}>Trainer not found</div>
-  const firstName = t.name.split(' ')[0]
   const loc = t.location
+
+  const allOfferings: Offering[] = [
+    { id: 'trial', kind: 'trial', name: '1-day trial', sub: 'Full session', price: t.trial.priceLabel },
+    ...t.programs.map<Offering>((p) => ({
+      id: p.id, kind: p.cadence === 'daily' ? 'daily' : 'weekly',
+      name: p.name, sub: p.scheduleLabel, price: p.priceLabel, programId: p.id, bestseller: p.bestseller,
+    })),
+    ...t.groupSessions.map<Offering>((g) => ({
+      id: g.id, kind: 'group', name: g.title,
+      sub: `${g.scheduleLabel} · ${g.placeLabel}`, price: g.priceLabel,
+      spotsTaken: g.spotsTaken, spotsMax: g.spotsMax,
+    })),
+    ...t.events.map<Offering>((e) => ({
+      id: e.id, kind: 'event', name: e.title,
+      sub: `${e.dateLabel} · ${e.placeLabel}`, price: e.free ? 'Free' : e.priceLabel ?? '',
+      spotsTaken: e.spotsTaken, spotsMax: e.spotsMax,
+    })),
+  ]
+
+  // Scope to the browse mode the client came from (1:1 vs group); fall back to everything.
+  const modeKinds = mode ? MODE_KINDS[mode] : null
+  const offerings = modeKinds ? allOfferings.filter((o) => modeKinds.includes(o.kind)) : allOfferings
+  const filters = modeKinds ? ALL_FILTERS.filter((f) => f.key === 'all' || modeKinds.includes(f.key)) : ALL_FILTERS
+  const shown = filter === 'all' ? offerings : offerings.filter((o) => o.kind === filter)
+
   return (
     <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1, overflowY: 'auto' }}>
       <div style={{ border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 13, background: '#fff' }}>
@@ -23,41 +65,24 @@ export function TrainerScreen({ trainerId }: { trainerId: string }) {
           <RatingPill rating={t.rating} />
         </div>
         <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 8 }}>
-          {loc.kind === 'local' ? `${loc.area} · ${loc.km} km` : 'Online · Intl'} · {t.programs.length} programs
+          {loc.kind === 'local' ? `${loc.area} · ${loc.km} km` : 'Online · Intl'} · {offerings.length} offerings
         </div>
       </div>
 
-      <div style={{ border: '1.5px solid var(--fc-indigo)', borderRadius: 14, padding: 12, marginBottom: 14, background: '#F6F5FE' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--fc-indigo)', marginBottom: 9 }}>
-          <Icon name="sparkles" size={14} color="var(--fc-indigo)" />
-          <span className="fc-display" style={{ fontSize: 12, fontWeight: 600 }}>Try before you commit</span>
-        </div>
-        <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 11, padding: 10, width: 130 }}>
-          <div className="fc-display" style={{ fontSize: 12, fontWeight: 600 }}>1-day trial</div>
-          <div style={{ fontSize: 10, color: 'var(--fc-muted)', margin: '2px 0 6px' }}>Full session</div>
-          <div className="fc-display fc-tabnum" style={{ fontSize: 12, fontWeight: 700 }}>{t.trial.priceLabel}</div>
-        </div>
+      <div style={{ display: 'flex', gap: 7, overflowX: 'auto', margin: '0 0 13px' }}>
+        {filters.map((f) => {
+          const active = filter === f.key
+          return (
+            <button key={f.key} onClick={() => setFilter(f.key)}
+              style={{ flex: '0 0 auto', fontSize: 11, fontWeight: 600, borderRadius: 999, padding: '6px 13px',
+                border: active ? '0.5px solid var(--fc-indigo)' : '0.5px solid rgba(20,20,43,0.18)',
+                color: active ? 'var(--fc-indigo)' : '#55555f',
+                background: active ? 'var(--fc-indigo-tint)' : '#fff' }}>{f.label}</button>
+          )
+        })}
       </div>
 
-      {t.programs.map((p) => <ProgramCard key={p.id} program={p} />)}
-
-      {t.events.length > 0 && (
-        <>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, margin: '10px 0 9px' }}>
-            <Icon name="confetti" size={14} color="var(--fc-green)" />
-            <span className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>Events by {firstName}</span>
-          </div>
-          <div style={{ display: 'flex', gap: 10, overflowX: 'auto' }}>
-            {t.events.map((e) => (
-              <div key={e.id} style={{ flex: '0 0 170px', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 13, padding: 11, background: '#fff' }}>
-                <div className="fc-display" style={{ fontSize: 12, fontWeight: 600 }}>{e.title}</div>
-                <div style={{ fontSize: 11, color: 'var(--fc-muted)', margin: '3px 0 7px' }}>{e.dateLabel}</div>
-                <CapacityBar taken={e.spotsTaken} max={e.spotsMax} />
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+      {shown.map((o) => <OfferingCard key={o.id} offering={o} />)}
     </div>
   )
 }

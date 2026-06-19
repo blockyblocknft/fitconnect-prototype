@@ -28,6 +28,9 @@ export interface TrainerEvent {
   spotsMax: number
 }
 
+export type Discipline = 'mobility' | 'strengthening' | 'hiit'
+export type TrainingMode = 'online' | 'outdoor'
+
 export interface Trainer {
   id: string
   name: string
@@ -39,6 +42,8 @@ export interface Trainer {
   fromPriceLabel: string
   verified: boolean
   trial: { priceLabel: string }
+  disciplines: Discipline[]
+  modes: TrainingMode[]
   programs: Program[]
   events: TrainerEvent[]
   groupSessions: GroupSession[]
@@ -55,12 +60,16 @@ export interface GroupSession {
 }
 
 export interface QA { author: 'you' | 'coach'; text: string }
+export type SessionStatus = 'attended' | 'missed' | 'inprogress' | 'upcoming'
+export type SessionWhen = 'past' | 'today' | 'future'
 export interface BookedSession {
   id: string
   index: number
   title: string
-  dateLabel: string
-  status: 'done' | 'upcoming'
+  date: string
+  time: string
+  when: SessionWhen
+  status: SessionStatus
   feedback?: string
   qa: QA[]
 }
@@ -71,6 +80,7 @@ export interface Booking {
   progressKind: 'weeks' | 'days'
   current: number
   total: number
+  meetLink: string
   sessions: BookedSession[]
 }
 

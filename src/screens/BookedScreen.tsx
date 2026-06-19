@@ -1,40 +1,55 @@
 import { bookings } from '../data/bookings'
 import { useNav } from '../nav/NavContext'
-import { StepTrail } from '../components/StepTrail'
+import { Icon } from '../components/Icon'
+import type { BookedSession } from '../lib/types'
+
+const SEG: Record<BookedSession['status'], string> = {
+  attended: 'var(--fc-green)',
+  missed: '#E24B4A',
+  inprogress: 'var(--fc-indigo)',
+  upcoming: 'var(--fc-indigo-tint)',
+}
 
 export function BookedScreen() {
   const nav = useNav()
+  const openProgram = (id: string) => nav.push({ name: 'programDetail', params: { id } })
+  const openSession = (id: string, sessionId: string) => nav.push({ name: 'programDetail', params: { id, sessionId } })
+
   return (
     <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1 }}>
-      <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 12, marginBottom: 11 }}>
-        <div className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 10 }}>YOUR PROGRESS</div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {[['12', 'day streak'], ['28', 'sessions done'], ['2', 'programs']].map(([v, l]) => (
-            <div key={l} style={{ flex: 1, background: 'var(--fc-surface)', borderRadius: 10, padding: 9, textAlign: 'center' }}>
-              <div className="fc-display fc-tabnum" style={{ fontSize: 17, fontWeight: 700, color: 'var(--fc-indigo)' }}>{v}</div>
-              <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{l}</div>
+      <div className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 10 }}>YOUR PROGRAMS</div>
+      {bookings.map((b) => {
+        const current = b.sessions.find((s) => s.status === 'inprogress') ?? b.sessions.find((s) => s.status === 'upcoming')
+        return (
+          <div key={b.id} style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16,
+            padding: 13, marginBottom: 11 }}>
+            <div role="button" tabIndex={0}
+              onClick={() => openProgram(b.id)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProgram(b.id) } }}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
+              <div style={{ minWidth: 0 }}>
+                <div className="fc-display" style={{ fontSize: 14, fontWeight: 600 }}>{b.programName}</div>
+                <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 1 }}>with {b.trainerName}</div>
+              </div>
+              <Icon name="chevron-right" size={18} color="#C4C4CF" />
             </div>
-          ))}
-        </div>
-      </div>
-      {bookings.map((b) => (
-        <div key={b.id} role="button" tabIndex={0}
-          onClick={() => nav.push({ name: 'programDetail', params: { id: b.id } })}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav.push({ name: 'programDetail', params: { id: b.id } }) } }}
-          style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 12,
-            marginBottom: 11, cursor: 'pointer' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
-            <span className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>{b.programName}</span>
-            <span style={{ fontSize: 11, color: 'var(--fc-indigo)', fontWeight: 600 }}>
-              {b.progressKind === 'weeks' ? `Wk ${b.current}/${b.total}` : `Day ${b.current}/${b.total}`}</span>
+
+            <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', marginTop: 12 }}>
+              {b.sessions.map((s) => (
+                <button key={s.id} aria-label={`Session ${s.index} · ${s.status}`} title={`Session ${s.index} · ${s.title}`}
+                  onClick={() => openSession(b.id, s.id)}
+                  style={{ flex: 1, height: s.status === 'inprogress' ? 11 : 6, borderRadius: 3, border: 'none',
+                    background: SEG[s.status], cursor: 'pointer', padding: 0 }} />
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 7 }}>
+              {current
+                ? <><span style={{ color: 'var(--fc-indigo)', fontWeight: 600 }}>● Now</span> Session {current.index} · {current.title}</>
+                : 'All sessions complete'}
+            </div>
           </div>
-          {b.progressKind === 'weeks'
-            ? <StepTrail done={b.current} total={4} />
-            : <div style={{ height: 5, borderRadius: 999, background: 'var(--fc-indigo-tint)', overflow: 'hidden' }}>
-                <div style={{ width: `${Math.round((b.current / b.total) * 100)}%`, height: '100%', background: 'var(--fc-green)' }} /></div>}
-          <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 6 }}>with {b.trainerName}</div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

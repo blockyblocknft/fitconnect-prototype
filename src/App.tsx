@@ -11,14 +11,18 @@ import { EventsScreen } from './screens/EventsScreen'
 import { BookedScreen } from './screens/BookedScreen'
 import { ProgramDetailScreen } from './screens/ProgramDetailScreen'
 import { LogMealScreen } from './screens/LogMealScreen'
-import { TrainerHubScreen } from './screens/TrainerHubScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { TrainerTodayScreen } from './screens/trainer/TrainerTodayScreen'
+import { TrainerSessionsScreen } from './screens/trainer/TrainerSessionsScreen'
+import { TrainerRosterScreen } from './screens/trainer/TrainerRosterScreen'
+import { TrainerClientsScreen } from './screens/trainer/TrainerClientsScreen'
 
-const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal'])
+const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal', 'trToday', 'trSessions', 'trClients'])
 const TITLES: Record<string, string> = {
   sessions: 'Sessions', events: 'Events', booked: 'Booked', logMeal: 'Log Meal',
   trainer: 'Trainer', checkout: 'Confirm booking', bookingConfirm: 'Booking',
-  programDetail: 'Program', trainerHub: 'Your trainers', profile: 'Profile',
+  programDetail: 'Program', profile: 'Profile',
+  trToday: 'Today', trSessions: 'Sessions', trClients: 'Clients', trRoster: 'Session roster',
 }
 
 function Shell() {
@@ -29,15 +33,18 @@ function Shell() {
   let body: React.ReactNode = null
   switch (cur.name) {
     case 'sessions': body = <SessionsScreen />; break
-    case 'trainer': body = <TrainerScreen trainerId={cur.params!.id} />; break
+    case 'trainer': body = <TrainerScreen trainerId={cur.params!.id} mode={cur.params?.mode as '1to1' | 'group' | undefined} />; break
     case 'checkout': body = <CheckoutScreen programId={cur.params!.programId} />; break
     case 'bookingConfirm': body = <BookingConfirmScreen />; break
     case 'events': body = <EventsScreen />; break
     case 'booked': body = <BookedScreen />; break
-    case 'programDetail': body = <ProgramDetailScreen bookingId={cur.params!.id} />; break
+    case 'programDetail': body = <ProgramDetailScreen bookingId={cur.params!.id} focusSessionId={cur.params?.sessionId} />; break
     case 'logMeal': body = <LogMealScreen />; break
-    case 'trainerHub': body = <TrainerHubScreen />; break
     case 'profile': body = <ProfileScreen />; break
+    case 'trToday': body = <TrainerTodayScreen />; break
+    case 'trSessions': body = <TrainerSessionsScreen />; break
+    case 'trClients': body = <TrainerClientsScreen />; break
+    case 'trRoster': body = <TrainerRosterScreen sessionId={cur.params!.id} />; break
   }
 
   return (

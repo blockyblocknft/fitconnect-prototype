@@ -5,6 +5,7 @@ export const trainers: Trainer[] = [
     id: 't1', name: 'Aanand R.', specialty: 'Strength · Fat loss', years: 8, rating: 4.9,
     type: ['1to1', 'group'], location: { kind: 'local', area: 'Indiranagar', km: 2.1 },
     fromPriceLabel: 'from ₹600 / session', verified: true, trial: { priceLabel: '₹300' },
+    disciplines: ['strengthening', 'hiit'], modes: ['outdoor'],
     programs: [
       { id: 'p1', trainerId: 't1', name: '12-Week Strength Builder', category: 'Strength programs',
         cadence: 'multi', scheduleLabel: '3x / week · live + plan', priceLabel: '₹7,200 / 12 wks',
@@ -29,6 +30,7 @@ export const trainers: Trainer[] = [
     id: 't2', name: 'Sara M.', specialty: 'Yoga · Mobility', years: 6, rating: 4.8,
     type: ['1to1', 'group'], location: { kind: 'online', intl: true },
     fromPriceLabel: 'from ₹450 / session', verified: true, trial: { priceLabel: '₹250' },
+    disciplines: ['mobility'], modes: ['online'],
     programs: [
       { id: 'p3', trainerId: 't2', name: 'Daily mobility flow', category: 'Mobility programs',
         cadence: 'daily', scheduleLabel: 'Every day · 20 min', priceLabel: '₹450 / session',

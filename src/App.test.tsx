@@ -7,10 +7,10 @@ describe('App end-to-end Sessions→Booked', () => {
   it('navigates from browse to a booked program', async () => {
     render(<App />)
     await userEvent.click(screen.getByText('Aanand R.'))           // trainer
-    await userEvent.click(screen.getAllByRole('button', { name: 'BOOK' })[0]) // checkout
+    await userEvent.click(screen.getByRole('button', { name: 'Book 12-Week Strength Builder' })) // checkout
     await userEvent.click(screen.getByRole('button', { name: /Pay advance/ })) // confirm
     await userEvent.click(screen.getByRole('button', { name: 'Go to Booked' }))
-    expect(screen.getByText('YOUR PROGRESS')).toBeInTheDocument()
+    expect(screen.getByText('YOUR PROGRAMS')).toBeInTheDocument()
   })
 
   it('reaches Log Meal from the bottom nav FAB', async () => {
