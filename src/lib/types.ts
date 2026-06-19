@@ -60,7 +60,7 @@ export interface GroupSession {
 }
 
 export interface QA { author: 'you' | 'coach'; text: string }
-export type SessionStatus = 'attended' | 'missed' | 'inprogress' | 'upcoming'
+export type SessionStatus = 'confirmed' | 'attended' | 'noshow' | 'cancelled'
 export type SessionWhen = 'past' | 'today' | 'future'
 export interface BookedSession {
   id: string

@@ -1,4 +1,4 @@
-export type Attendance = 'pending' | 'attended' | 'noshow'
+export type Attendance = 'confirmed' | 'attended' | 'noshow'
 export interface RosterClient { id: string; name: string; initials: string; attendance: Attendance }
 export interface TrainerSession {
   id: string
@@ -15,15 +15,15 @@ export const trainerSessions: TrainerSession[] = [
   { id: 'ts1', title: 'Morning HIIT', time: 'Today · 6:00 AM', today: true, mode: 'inperson', place: 'Indiranagar', capacity: 20,
     clients: [
       { id: 'c1', name: 'Priya N.', initials: 'PN', attendance: 'attended' },
-      { id: 'c2', name: 'Rahul K.', initials: 'RK', attendance: 'pending' },
+      { id: 'c2', name: 'Rahul K.', initials: 'RK', attendance: 'confirmed' },
       { id: 'c3', name: 'Meera S.', initials: 'MS', attendance: 'noshow' },
     ] },
   { id: 'ts2', title: '1:1 Strength · Prabu', time: 'Today · 6:00 PM', today: true, mode: 'online', place: 'Google Meet', capacity: 1,
-    clients: [{ id: 'c4', name: 'Prabu S.', initials: 'PS', attendance: 'pending' }] },
+    clients: [{ id: 'c4', name: 'Prabu S.', initials: 'PS', attendance: 'confirmed' }] },
   { id: 'ts3', title: 'Mobility group', time: 'Tomorrow · 7:30 AM', today: false, mode: 'inperson', place: 'Koramangala', capacity: 15,
     clients: [
-      { id: 'c5', name: 'Anu R.', initials: 'AR', attendance: 'pending' },
-      { id: 'c6', name: 'Vikram T.', initials: 'VT', attendance: 'pending' },
+      { id: 'c5', name: 'Anu R.', initials: 'AR', attendance: 'confirmed' },
+      { id: 'c6', name: 'Vikram T.', initials: 'VT', attendance: 'confirmed' },
     ] },
 ]
 

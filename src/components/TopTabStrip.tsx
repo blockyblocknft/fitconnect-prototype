@@ -2,13 +2,14 @@ import { useNav, type TabKey } from '../nav/NavContext'
 import { Icon } from './Icon'
 
 const CLIENT_TABS: { key: TabKey; label: string; icon: string }[] = [
+  { key: 'dashboard', label: 'Dashboard', icon: 'layout-dashboard' },
   { key: 'sessions', label: 'Sessions', icon: 'barbell' },
   { key: 'logMeal', label: 'Log Meal', icon: 'salad' },
   { key: 'events', label: 'Events', icon: 'confetti' },
   { key: 'booked', label: 'Booked', icon: 'bookmark' },
 ]
 const TRAINER_TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: 'trToday', label: 'Today', icon: 'calendar-event' },
+  { key: 'trToday', label: 'Dashboard', icon: 'layout-dashboard' },
   { key: 'trSessions', label: 'Sessions', icon: 'barbell' },
   { key: 'trClients', label: 'Clients', icon: 'users' },
 ]

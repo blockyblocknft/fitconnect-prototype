@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getBooking, cancelBooking } from '../data/bookings'
 import { useNav } from '../nav/NavContext'
 import type { BookedSession } from '../lib/types'
+import { SESSION_STATUS } from '../lib/sessionStatus'
 import { SegmentedToggle } from '../components/SegmentedToggle'
 import { SessionItem } from '../components/cards/SessionItem'
 import { Icon } from '../components/Icon'
@@ -15,16 +16,10 @@ const DISCUSSION = [
 const WHEN_BORDER: Record<BookedSession['when'], string> = {
   past: 'rgba(20,20,43,0.18)', today: 'var(--fc-green)', future: '#E24B4A',
 }
-const TAG: Record<BookedSession['status'], { label: string; bg: string; fg: string }> = {
-  attended: { label: 'Attended', bg: '#E4F3EA', fg: 'var(--fc-rating-green)' },
-  missed: { label: 'Missed', bg: '#FCEBEB', fg: '#A32D2D' },
-  inprogress: { label: 'In progress', bg: '#FAEEDA', fg: '#854F0B' },
-  upcoming: { label: 'Upcoming', bg: 'var(--fc-indigo-tint)', fg: 'var(--fc-indigo)' },
-}
 
 function ScheduleChip({ s }: { s: BookedSession }) {
   const disabled = s.when === 'past'
-  const tag = TAG[s.status]
+  const tag = SESSION_STATUS[s.status]
   return (
     <div style={{ border: `1.5px solid ${WHEN_BORDER[s.when]}`, borderRadius: 8, padding: '6px 4px', textAlign: 'center',
       background: disabled ? 'var(--fc-surface)' : '#fff', opacity: disabled ? 0.5 : 1 }}>

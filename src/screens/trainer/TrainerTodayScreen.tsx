@@ -1,7 +1,5 @@
 import { useNav } from '../../nav/NavContext'
 import { trainerSessions, requests, todayStats } from '../../data/trainerView'
-import { AUDIT } from '../../data/auditNotes'
-import { AuditButton } from '../../components/AuditButton'
 import { Icon } from '../../components/Icon'
 
 function Tile({ value, label }: { value: number; label: string }) {
@@ -20,9 +18,8 @@ export function TrainerTodayScreen() {
   return (
     <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1 }}>
       <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13, marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 11 }}>
+        <div style={{ marginBottom: 11 }}>
           <span className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>Today’s workload</span>
-          <AuditButton note={AUDIT.dashboard} />
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Tile value={s.sessions} label="sessions" />
@@ -32,9 +29,8 @@ export function TrainerTodayScreen() {
       </div>
 
       <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13, marginBottom: 12 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ marginBottom: 10 }}>
           <span className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>Requests · awaiting confirmation</span>
-          <AuditButton note={AUDIT.bookingLifecycle} />
         </div>
         {requests.map((r) => (
           <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',

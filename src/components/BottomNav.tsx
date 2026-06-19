@@ -23,8 +23,8 @@ export function BottomNav() {
     <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-around', alignItems: 'flex-end',
       padding: '9px 14px 12px', background: 'var(--fc-white)', borderTop: '0.5px solid rgba(20,20,43,0.10)' }}>
       {trainer
-        ? item('Today', 'calendar-event', homeActive, () => nav.setTab('trToday'))
-        : item('Train', 'barbell', homeActive, () => nav.setTab('sessions'))}
+        ? item('Dashboard', 'layout-dashboard', homeActive, () => nav.setTab('trToday'))
+        : item('Home', 'home', homeActive, () => nav.setTab('dashboard'))}
       <button onClick={() => nav.setTab(trainer ? 'trSessions' : 'logMeal')} aria-label={trainer ? 'Create' : 'Log meal'}
         style={{ background: 'transparent', border: 'none', textAlign: 'center', marginTop: -14 }}>
         <div style={{ width: 46, height: 46, borderRadius: '50%', background: 'var(--fc-coral)', margin: '0 auto',

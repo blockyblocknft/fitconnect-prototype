@@ -1,25 +1,19 @@
 import { useState } from 'react'
 import type { BookedSession } from '../../lib/types'
+import { SESSION_STATUS } from '../../lib/sessionStatus'
 import { Icon } from '../Icon'
-
-const STATUS = {
-  attended: { bg: 'var(--fc-green)', icon: 'check', label: 'Attended', color: 'var(--fc-rating-green)' },
-  missed: { bg: '#E24B4A', icon: 'x', label: 'Missed', color: '#A32D2D' },
-  inprogress: { bg: '#EF9F27', icon: 'player-play', label: 'In progress', color: '#854F0B' },
-  upcoming: { bg: 'var(--fc-coral)', icon: 'clock', label: 'Upcoming', color: 'var(--fc-coral)' },
-} as const
 
 export function SessionItem({ session }: { session: BookedSession }) {
   const [draft, setDraft] = useState('')
   const [rating, setRating] = useState(0)
   const [note, setNote] = useState('')
   const [sent, setSent] = useState(false)
-  const s = STATUS[session.status]
-  const askable = session.status === 'upcoming' || session.status === 'inprogress'
+  const s = SESSION_STATUS[session.status]
+  const askable = session.status === 'confirmed'
   return (
     <div style={{ border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: '11px 12px', marginBottom: 11 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-        <div style={{ width: 22, height: 22, borderRadius: '50%', background: s.bg,
+        <div style={{ width: 22, height: 22, borderRadius: '50%', background: s.dot,
           display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={s.icon} size={13} color="#fff" />
         </div>
@@ -27,7 +21,7 @@ export function SessionItem({ session }: { session: BookedSession }) {
           <div className="fc-display" style={{ fontSize: 12, fontWeight: 600 }}>Session {session.index} · {session.title}</div>
           <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{session.date} · {session.time}</div>
         </div>
-        <span style={{ fontSize: 10, fontWeight: 600, color: s.color }}>{s.label}</span>
+        <span style={{ fontSize: 10, fontWeight: 600, color: s.fg }}>{s.label}</span>
       </div>
       {session.feedback && (
         <div style={{ background: '#F0FAF4', borderRadius: 10, padding: '8px 10px', marginBottom: 7 }}>

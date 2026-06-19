@@ -2,19 +2,19 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import type { Role } from '../lib/types'
 
 export type ScreenName =
-  | 'sessions' | 'trainer' | 'checkout' | 'bookingConfirm'
-  | 'events' | 'booked' | 'programDetail' | 'logMeal'
+  | 'dashboard' | 'sessions' | 'trainer' | 'checkout' | 'bookingConfirm'
+  | 'events' | 'booked' | 'programDetail' | 'logMeal' | 'history'
   | 'profile'
   | 'trToday' | 'trSessions' | 'trClients' | 'trRoster'
 
 export interface Screen { name: ScreenName; params?: Record<string, string> }
-export type TabKey = 'sessions' | 'events' | 'booked' | 'logMeal' | 'trToday' | 'trSessions' | 'trClients'
+export type TabKey = 'dashboard' | 'sessions' | 'events' | 'booked' | 'logMeal' | 'trToday' | 'trSessions' | 'trClients'
 
 const TAB_ROOT: Record<TabKey, ScreenName> = {
-  sessions: 'sessions', events: 'events', booked: 'booked', logMeal: 'logMeal',
+  dashboard: 'dashboard', sessions: 'sessions', events: 'events', booked: 'booked', logMeal: 'logMeal',
   trToday: 'trToday', trSessions: 'trSessions', trClients: 'trClients',
 }
-const HOME_TAB: Record<Role, TabKey> = { client: 'sessions', trainer: 'trToday' }
+const HOME_TAB: Record<Role, TabKey> = { client: 'dashboard', trainer: 'trToday' }
 
 interface NavValue {
   current: Screen
@@ -31,8 +31,8 @@ interface NavValue {
 const Ctx = createContext<NavValue | null>(null)
 
 export function NavProvider({ children }: { children: ReactNode }) {
-  const [stack, setStack] = useState<Screen[]>([{ name: 'sessions' }])
-  const [activeTab, setActiveTab] = useState<TabKey>('sessions')
+  const [stack, setStack] = useState<Screen[]>([{ name: 'dashboard' }])
+  const [activeTab, setActiveTab] = useState<TabKey>('dashboard')
   const [role, setRole] = useState<Role>('client')
 
   const value = useMemo<NavValue>(() => ({
