@@ -19,11 +19,11 @@ function Probe() {
 describe('NavContext', () => {
   it('pushes and pops the screen stack', async () => {
     render(<NavProvider><Probe /></NavProvider>)
-    expect(screen.getByTestId('top').textContent).toBe('dashboard')
+    expect(screen.getByTestId('top').textContent).toBe('sessions')
     await userEvent.click(screen.getByText('go'))
     expect(screen.getByTestId('top').textContent).toBe('trainer')
     await userEvent.click(screen.getByText('back'))
-    expect(screen.getByTestId('top').textContent).toBe('dashboard')
+    expect(screen.getByTestId('top').textContent).toBe('sessions')
   })
 
   it('switches active tab and resets the stack to that tab root', async () => {

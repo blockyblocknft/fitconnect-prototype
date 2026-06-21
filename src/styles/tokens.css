@@ -20,3 +20,7 @@
   --fc-font-display: 'Sora', system-ui, sans-serif;
   --fc-font-body: 'Inter', system-ui, sans-serif;
 }
+
+/* Hide scrollbar while keeping horizontal scroll (used by overflowing tab strips). */
+.fc-noscrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.fc-noscrollbar::-webkit-scrollbar { display: none; }

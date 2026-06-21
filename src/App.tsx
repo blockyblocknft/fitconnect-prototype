@@ -3,7 +3,6 @@ import { PhoneFrame } from './components/PhoneFrame'
 import { ContextHeader } from './components/ContextHeader'
 import { TopTabStrip } from './components/TopTabStrip'
 import { BottomNav } from './components/BottomNav'
-import { DashboardScreen } from './screens/DashboardScreen'
 import { SessionsScreen } from './screens/SessionsScreen'
 import { TrainerScreen } from './screens/TrainerScreen'
 import { CheckoutScreen } from './screens/CheckoutScreen'
@@ -14,17 +13,22 @@ import { ProgramDetailScreen } from './screens/ProgramDetailScreen'
 import { LogMealScreen } from './screens/LogMealScreen'
 import { HistoryScreen } from './screens/HistoryScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { ProfileDetailScreen } from './screens/ProfileDetailScreen'
+import { FittiiScreen } from './screens/FittiiScreen'
+import { FittiiFeatureScreen } from './screens/FittiiFeatureScreen'
 import { TrainerTodayScreen } from './screens/trainer/TrainerTodayScreen'
 import { TrainerSessionsScreen } from './screens/trainer/TrainerSessionsScreen'
 import { TrainerRosterScreen } from './screens/trainer/TrainerRosterScreen'
-import { TrainerClientsScreen } from './screens/trainer/TrainerClientsScreen'
+import { TrainerCoachScreen } from './screens/trainer/TrainerCoachScreen'
+import { TrainerCalendarScreen } from './screens/trainer/TrainerCalendarScreen'
+import { TrainerHoursScreen } from './screens/trainer/TrainerHoursScreen'
 
-const TAB_SCREENS = new Set(['dashboard', 'sessions', 'events', 'booked', 'logMeal', 'trToday', 'trSessions', 'trClients'])
+const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal', 'fittii', 'trToday', 'trSessions', 'trCoach', 'trCalendar', 'trHours'])
 const TITLES: Record<string, string> = {
-  dashboard: 'Dashboard', sessions: 'Sessions', events: 'Events', booked: 'Booked', logMeal: 'Log Meal',
+  sessions: 'Book sessions', events: 'Events', booked: 'Booked', logMeal: 'Log Meal', fittii: 'Fittii Feedback',
   trainer: 'Trainer', checkout: 'Confirm booking', bookingConfirm: 'Booking',
-  programDetail: 'Program', profile: 'Profile', history: 'Session history',
-  trToday: 'Dashboard', trSessions: 'Sessions', trClients: 'Clients', trRoster: 'Session roster',
+  programDetail: 'Program', profile: 'Profile', history: 'Session history', fittiiFeature: 'Feedback thread',
+  trToday: 'Requests', trSessions: 'Create session', trCoach: 'Coach', trRoster: 'Session roster', trCalendar: 'Calendar', trHours: 'Work hours',
 }
 
 function Shell() {
@@ -34,7 +38,6 @@ function Shell() {
 
   let body: React.ReactNode = null
   switch (cur.name) {
-    case 'dashboard': body = <DashboardScreen />; break
     case 'sessions': body = <SessionsScreen />; break
     case 'trainer': body = <TrainerScreen trainerId={cur.params!.id} mode={cur.params?.mode as '1to1' | 'group' | undefined} />; break
     case 'checkout': body = <CheckoutScreen programId={cur.params!.programId} />; break
@@ -45,15 +48,22 @@ function Shell() {
     case 'logMeal': body = <LogMealScreen />; break
     case 'history': body = <HistoryScreen />; break
     case 'profile': body = <ProfileScreen />; break
+    case 'profileDetail': body = <ProfileDetailScreen section={cur.params!.section} />; break
+    case 'fittii': body = <FittiiScreen />; break
+    case 'fittiiFeature': body = <FittiiFeatureScreen moduleId={cur.params!.moduleId} featureId={cur.params!.featureId} />; break
     case 'trToday': body = <TrainerTodayScreen />; break
     case 'trSessions': body = <TrainerSessionsScreen />; break
-    case 'trClients': body = <TrainerClientsScreen />; break
+    case 'trCoach': body = <TrainerCoachScreen />; break
+    case 'trHours': body = <TrainerHoursScreen />; break
+    case 'trCalendar': body = <TrainerCalendarScreen />; break
     case 'trRoster': body = <TrainerRosterScreen sessionId={cur.params!.id} />; break
   }
 
+  const title = cur.name === 'profileDetail' ? (cur.params?.title ?? 'Settings') : TITLES[cur.name]
+
   return (
     <PhoneFrame>
-      <ContextHeader title={TITLES[cur.name]} back={!isTabRoot} />
+      <ContextHeader title={title} back={!isTabRoot} />
       {isTabRoot && <TopTabStrip />}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>{body}</div>
       <BottomNav />

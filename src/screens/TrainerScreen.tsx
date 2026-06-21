@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import type { SessionType } from '../lib/types'
 import { getTrainer } from '../data/trainers'
+import { clientRequests, type RequestStatus } from '../data/sessionRequests'
 import { OfferingCard, type Offering, type OfferingKind } from '../components/cards/OfferingCard'
+import { RequestSessionModal } from '../components/RequestSessionModal'
 import { Icon } from '../components/Icon'
 import { RatingPill } from '../components/RatingPill'
+
+const REQ_STATUS: Record<RequestStatus, { label: string; bg: string; fg: string }> = {
+  awaiting: { label: 'Awaiting', bg: '#FAEEDA', fg: '#854F0B' },
+  confirmed: { label: 'Confirmed', bg: '#E4F3EA', fg: 'var(--fc-rating-green)' },
+  declined: { label: 'Declined', bg: '#FCEBEB', fg: '#A32D2D' },
+}
 
 type FilterKey = 'all' | OfferingKind
 const ALL_FILTERS: { key: FilterKey; label: string }[] = [
@@ -23,9 +31,12 @@ const MODE_KINDS: Record<SessionType, OfferingKind[]> = {
 
 export function TrainerScreen({ trainerId, mode }: { trainerId: string; mode?: SessionType }) {
   const [filter, setFilter] = useState<FilterKey>('all')
+  const [showRequest, setShowRequest] = useState(false)
+  const [, force] = useState(0)
   const t = getTrainer(trainerId)
   if (!t) return <div style={{ padding: 16 }}>Trainer not found</div>
   const loc = t.location
+  const myRequests = clientRequests().filter((r) => r.trainerName === t.name)
 
   const allOfferings: Offering[] = [
     { id: 'trial', kind: 'trial', name: '1-day trial', sub: 'Full session', price: t.trial.priceLabel },
@@ -82,7 +93,40 @@ export function TrainerScreen({ trainerId, mode }: { trainerId: string; mode?: S
         })}
       </div>
 
-      {shown.map((o) => <OfferingCard key={o.id} offering={o} />)}
+      {shown.map((o) => <OfferingCard key={o.id} offering={o} trainerName={t.name} />)}
+
+      {/* Custom session request — scoped to this trainer */}
+      <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginTop: 4 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <div className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>Need a custom slot?</div>
+            <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 1 }}>Request a time outside {t.name}’s programs.</div>
+          </div>
+          <button onClick={() => setShowRequest(true)}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--fc-indigo)', color: '#fff',
+              border: 'none', borderRadius: 10, padding: '8px 11px', fontSize: 12, fontWeight: 600 }}>
+            <Icon name="plus" size={14} color="#fff" /> Request
+          </button>
+        </div>
+        {myRequests.map((r) => {
+          const st = REQ_STATUS[r.status]
+          return (
+            <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              borderTop: '0.5px solid rgba(20,20,43,0.08)', marginTop: 9, paddingTop: 9 }}>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{r.focus}</div>
+                <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{r.when} · {r.mode === 'online' ? 'Online' : 'In person'}</div>
+              </div>
+              <span style={{ fontSize: 9, fontWeight: 600, color: st.fg, background: st.bg, padding: '2px 8px', borderRadius: 999 }}>{st.label}</span>
+            </div>
+          )
+        })}
+      </div>
+
+      {showRequest && (
+        <RequestSessionModal trainerName={t.name} onClose={() => setShowRequest(false)}
+          onSubmit={() => { setShowRequest(false); force((n) => n + 1) }} />
+      )}
     </div>
   )
 }

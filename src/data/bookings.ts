@@ -1,9 +1,19 @@
-import type { Booking } from '../lib/types'
+import type { Booking, BookedSession, Program, Discipline } from '../lib/types'
+
+export function discOfCategory(category: string): Discipline {
+  const c = category.toLowerCase()
+  if (c.includes('mobility')) return 'mobility'
+  if (c.includes('hiit')) return 'hiit'
+  if (c.includes('pilates')) return 'pilates'
+  if (c.includes('circuit')) return 'circuit'
+  if (c.includes('hyrox')) return 'hyrox'
+  return 'strengthening'
+}
 
 export const bookings: Booking[] = [
   {
     id: 'b1', programName: '12-Week Strength Builder', trainerName: 'Aanand R.', status: 'confirmed',
-    progressKind: 'weeks', current: 3, total: 12,
+    kind: '1to1', mode: 'inperson', discipline: 'strengthening', progressKind: 'weeks', current: 3, total: 12,
     meetLink: 'https://meet.google.com/abc-defg-hij',
     sessions: [
       { id: 's1', index: 1, title: 'Lower body', date: 'Mon 9 Jun', time: '6:00 PM', when: 'past', status: 'attended',
@@ -22,7 +32,7 @@ export const bookings: Booking[] = [
   },
   {
     id: 'b2', programName: 'Daily mobility flow', trainerName: 'Sara M.', status: 'awaiting',
-    progressKind: 'days', current: 9, total: 30,
+    kind: 'group', mode: 'online', discipline: 'mobility', progressKind: 'days', current: 9, total: 30,
     meetLink: 'https://meet.google.com/xyz-mnop-qrs',
     sessions: [
       { id: 'm1', index: 1, title: 'Morning flow', date: 'Mon 16 Jun', time: '7:30 AM', when: 'past', status: 'attended', qa: [] },
@@ -39,4 +49,61 @@ export function getBooking(id: string) {
 export function cancelBooking(id: string) {
   const b = bookings.find((x) => x.id === id)
   if (b) b.status = 'cancelled'
+}
+export function rescheduleSession(bookingId: string, sessionId: string, date: string, time: string) {
+  const s = bookings.find((b) => b.id === bookingId)?.sessions.find((x) => x.id === sessionId)
+  if (s) { s.date = date; s.time = time }
+}
+
+const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+export interface SlotChoice { dayOffset: number; dateLabel: string; timeLabel: string }
+
+export interface Recurrence { days: number[]; timeLabel: string }
+
+// Generate the program's sessions on the chosen recurring weekdays at the set time.
+function buildRecurringSessions(program: Program, rec: Recurrence): BookedSession[] {
+  const count = program.cadence === 'daily' ? 6 : 8
+  const out: BookedSession[] = []
+  const d = new Date()
+  d.setDate(d.getDate() + 1) // start tomorrow
+  let guard = 0
+  while (out.length < count && guard++ < 200) {
+    if (rec.days.length === 0 || rec.days.includes(d.getDay())) {
+      const i = out.length + 1
+      out.push({ id: `${program.id}-s${i}`, index: i, title: `Session ${i}`,
+        date: `${WD[d.getDay()]} ${d.getDate()}`, time: rec.timeLabel, when: 'future', status: 'confirmed', qa: [] })
+    }
+    d.setDate(d.getDate() + 1)
+  }
+  return out
+}
+
+// Create a real booking from a program checkout with its recurring schedule.
+// Dedups by program name so re-booking the same program doesn't add a duplicate card.
+export function addBooking(program: Program, trainerName: string, rec: Recurrence, mode: 'online' | 'inperson' = 'inperson'): string {
+  const existing = bookings.find((b) => b.programName === program.name)
+  if (existing) return existing.id
+  const booking: Booking = {
+    id: `bk-${program.id}`, programName: program.name, trainerName, status: 'awaiting',
+    kind: '1to1', mode, discipline: discOfCategory(program.category), progressKind: program.cadence === 'daily' ? 'days' : 'weeks', current: 0,
+    total: program.cadence === 'daily' ? 30 : 12, meetLink: 'https://meet.google.com/new',
+    sessions: buildRecurringSessions(program, rec),
+  }
+  bookings.unshift(booking)
+  return booking.id
+}
+
+// A one-off booking (trial / group class) on a single chosen slot.
+export function addSingleBooking(
+  name: string, trainerName: string, slot: SlotChoice,
+  kind: 'group' | '1to1' = '1to1', mode: 'online' | 'inperson' = 'inperson', discipline: Discipline = 'strengthening',
+): string {
+  const id = `bk-${Date.now()}`
+  bookings.unshift({
+    id, programName: name, trainerName, status: 'awaiting', kind, mode, discipline, progressKind: 'days', current: 0, total: 1,
+    meetLink: 'https://meet.google.com/new',
+    sessions: [{ id: `${id}-s1`, index: 1, title: name, date: slot.dateLabel, time: slot.timeLabel, when: 'future', status: 'confirmed', qa: [] }],
+  })
+  return id
 }

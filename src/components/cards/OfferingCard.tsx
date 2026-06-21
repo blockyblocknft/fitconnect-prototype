@@ -1,6 +1,9 @@
+import { useState } from 'react'
 import { useNav } from '../../nav/NavContext'
+import { addSingleBooking } from '../../data/bookings'
 import { Badge } from '../Badge'
 import { Button } from '../Button'
+import { BookSlotModal } from '../BookSlotModal'
 import { CapacityBar } from '../CapacityBar'
 
 export type OfferingKind = 'trial' | 'daily' | 'weekly' | 'group' | 'event'
@@ -21,12 +24,14 @@ const KIND_LABEL: Record<OfferingKind, string> = {
   trial: 'Trial', daily: 'Daily', weekly: 'Weekly', group: 'Group', event: 'Event',
 }
 
-export function OfferingCard({ offering }: { offering: Offering }) {
+export function OfferingCard({ offering, trainerName }: { offering: Offering; trainerName: string }) {
   const nav = useNav()
-  const onBook = () =>
-    offering.programId
-      ? nav.push({ name: 'checkout', params: { programId: offering.programId } })
-      : nav.push({ name: 'bookingConfirm' })
+  const [showSlot, setShowSlot] = useState(false)
+  const onBook = () => {
+    if (offering.programId) nav.push({ name: 'checkout', params: { programId: offering.programId } })
+    else if (offering.kind === 'trial') setShowSlot(true)
+    else nav.push({ name: 'bookingConfirm' })
+  }
 
   return (
     <div style={{ border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: '11px 12px',
@@ -47,6 +52,12 @@ export function OfferingCard({ offering }: { offering: Offering }) {
       </div>
       {offering.spotsTaken !== undefined && offering.spotsMax !== undefined && (
         <div style={{ marginTop: 9 }}><CapacityBar taken={offering.spotsTaken} max={offering.spotsMax} /></div>
+      )}
+
+      {showSlot && (
+        <BookSlotModal title={offering.name} trainerName={trainerName}
+          onClose={() => setShowSlot(false)}
+          onConfirm={(slot) => { addSingleBooking(offering.name, trainerName, slot); setShowSlot(false); nav.push({ name: 'bookingConfirm' }) }} />
       )}
     </div>
   )

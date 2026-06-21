@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { useNav } from '../../nav/NavContext'
-import { trainerSessions, requests, todayStats } from '../../data/trainerView'
+import { todayStats } from '../../data/trainerView'
+import { freeSlots } from '../../data/calendar'
+import { customRequests, resolveCustomRequest } from '../../data/sessionRequests'
 import { Icon } from '../../components/Icon'
 
 function Tile({ value, label }: { value: number; label: string }) {
@@ -13,33 +14,37 @@ function Tile({ value, label }: { value: number; label: string }) {
 }
 
 export function TrainerTodayScreen() {
-  const nav = useNav()
   const s = todayStats()
-  const today = trainerSessions.filter((x) => x.today)
-  const [pending, setPending] = useState(requests)
+  const openSlots = freeSlots(0, 30).length
+  const [pending, setPending] = useState(() => customRequests.filter((r) => r.status === 'awaiting'))
   const [resolved, setResolved] = useState<{ id: string; verb: string } | null>(null)
-  const resolve = (id: string, verb: string) => { setPending((p) => p.filter((r) => r.id !== id)); setResolved({ id, verb }) }
+  const resolve = (id: string, verb: 'confirmed' | 'declined') => {
+    resolveCustomRequest(id, verb)
+    setPending((p) => p.filter((r) => r.id !== id))
+    setResolved({ id, verb })
+  }
+
   return (
     <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1 }}>
       <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13, marginBottom: 12 }}>
         <div style={{ marginBottom: 11 }}>
-          <span className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>Today’s workload</span>
+          <span className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>Today session summary</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <Tile value={s.sessions} label="sessions" />
           <Tile value={s.booked} label="booked" />
-          <Tile value={s.open} label="open spots" />
+          <Tile value={openSlots} label="open 30-min slots" />
         </div>
       </div>
 
-      <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13, marginBottom: 12 }}>
+      <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13 }}>
         <div style={{ marginBottom: 10 }}>
           <span className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>Requests · awaiting confirmation</span>
         </div>
         {pending.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11, color: 'var(--fc-muted)', padding: '4px 0' }}>
             <Icon name="circle-check" size={15} color="var(--fc-green)" />
-            {resolved ? `Request ${resolved.verb}. All caught up.` : 'All caught up — no pending requests.'}
+            {resolved ? `Request ${resolved.verb}. All caught up — see Profile › history.` : 'All caught up — no pending requests.'}
           </div>
         ) : pending.map((r) => (
           <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0',
@@ -47,35 +52,14 @@ export function TrainerTodayScreen() {
             <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600 }}>{r.initials}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 12, fontWeight: 600 }}>{r.client}</div>
-              <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{r.session} · {r.time}</div>
+              <div style={{ fontSize: 12, fontWeight: 600 }}>{r.client} · <span style={{ fontWeight: 500, color: 'var(--fc-muted)' }}>{r.focus}</span></div>
+              <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{r.when} · {r.mode === 'online' ? 'Online' : 'In person'}</div>
             </div>
             <button aria-label="Confirm" onClick={() => resolve(r.id, 'confirmed')} style={{ background: 'var(--fc-green)', color: '#fff', border: 'none', borderRadius: 9, padding: '6px 8px', fontSize: 11, fontWeight: 600 }}>Confirm</button>
             <button aria-label="Decline" onClick={() => resolve(r.id, 'declined')} style={{ background: 'transparent', color: '#A32D2D', border: '1px solid #F09595', borderRadius: 9, padding: '6px 8px', fontSize: 11, fontWeight: 600 }}>Decline</button>
           </div>
         ))}
       </div>
-
-      <div className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 9 }}>TODAY’S SESSIONS</div>
-      {today.map((x) => (
-        <div key={x.id} role="button" tabIndex={0}
-          onClick={() => nav.push({ name: 'trRoster', params: { id: x.id } })}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nav.push({ name: 'trRoster', params: { id: x.id } }) } }}
-          style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 10, cursor: 'pointer' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <div>
-              <div className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>{x.title}</div>
-              <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
-                <Icon name={x.mode === 'online' ? 'video' : 'map-pin'} size={12} color="var(--fc-muted)" />{x.time} · {x.place}
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div className="fc-display fc-tabnum" style={{ fontSize: 13, fontWeight: 700, color: 'var(--fc-indigo)' }}>{x.clients.length}/{x.capacity}</div>
-              <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>booked</div>
-            </div>
-          </div>
-        </div>
-      ))}
     </div>
   )
 }

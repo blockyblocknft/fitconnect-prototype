@@ -2,24 +2,25 @@ import { createContext, useContext, useMemo, useState, type ReactNode } from 're
 import type { Role } from '../lib/types'
 
 export type ScreenName =
-  | 'dashboard' | 'sessions' | 'trainer' | 'checkout' | 'bookingConfirm'
+  | 'sessions' | 'trainer' | 'checkout' | 'bookingConfirm'
   | 'events' | 'booked' | 'programDetail' | 'logMeal' | 'history'
-  | 'profile'
-  | 'trToday' | 'trSessions' | 'trClients' | 'trRoster'
+  | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature'
+  | 'trToday' | 'trSessions' | 'trCoach' | 'trRoster' | 'trCalendar' | 'trHours'
 
 export interface Screen { name: ScreenName; params?: Record<string, string> }
-export type TabKey = 'dashboard' | 'sessions' | 'events' | 'booked' | 'logMeal' | 'trToday' | 'trSessions' | 'trClients'
+export type TabKey = 'sessions' | 'events' | 'booked' | 'logMeal' | 'fittii' | 'trToday' | 'trSessions' | 'trCoach' | 'trCalendar' | 'trHours'
 
 const TAB_ROOT: Record<TabKey, ScreenName> = {
-  dashboard: 'dashboard', sessions: 'sessions', events: 'events', booked: 'booked', logMeal: 'logMeal',
-  trToday: 'trToday', trSessions: 'trSessions', trClients: 'trClients',
+  sessions: 'sessions', events: 'events', booked: 'booked', logMeal: 'logMeal', fittii: 'fittii',
+  trToday: 'trToday', trSessions: 'trSessions', trCoach: 'trCoach', trCalendar: 'trCalendar', trHours: 'trHours',
 }
-const HOME_TAB: Record<Role, TabKey> = { client: 'dashboard', trainer: 'trToday' }
+const HOME_TAB: Record<Role, TabKey> = { client: 'sessions', trainer: 'trToday' }
 
 interface NavValue {
   current: Screen
   stack: Screen[]
   activeTab: TabKey
+  lastTab: TabKey
   role: Role
   push: (s: Screen) => void
   pop: () => void
@@ -31,21 +32,27 @@ interface NavValue {
 const Ctx = createContext<NavValue | null>(null)
 
 export function NavProvider({ children }: { children: ReactNode }) {
-  const [stack, setStack] = useState<Screen[]>([{ name: 'dashboard' }])
-  const [activeTab, setActiveTab] = useState<TabKey>('dashboard')
+  const [stack, setStack] = useState<Screen[]>([{ name: 'sessions' }])
+  const [activeTab, setActiveTab] = useState<TabKey>('sessions')
+  const [lastTab, setLastTab] = useState<TabKey>('sessions')
   const [role, setRole] = useState<Role>('client')
 
   const value = useMemo<NavValue>(() => ({
     current: stack[stack.length - 1],
     stack,
     activeTab,
+    lastTab,
     role,
     push: (s) => setStack((prev) => [...prev, s]),
     pop: () => setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev)),
-    setTab: (t) => { setActiveTab(t); setStack([{ name: TAB_ROOT[t] }]) },
+    setTab: (t) => {
+      // Remember where we came from so Fittii Feedback can auto-detect the module.
+      if (activeTab !== 'fittii' && activeTab !== t) setLastTab(activeTab)
+      setActiveTab(t); setStack([{ name: TAB_ROOT[t] }])
+    },
     goRoot: (name) => setStack([{ name }]),
-    switchRole: (r) => { setRole(r); setActiveTab(HOME_TAB[r]); setStack([{ name: TAB_ROOT[HOME_TAB[r]] }]) },
-  }), [stack, activeTab, role])
+    switchRole: (r) => { setRole(r); setActiveTab(HOME_TAB[r]); setLastTab(HOME_TAB[r]); setStack([{ name: TAB_ROOT[HOME_TAB[r]] }]) },
+  }), [stack, activeTab, lastTab, role])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

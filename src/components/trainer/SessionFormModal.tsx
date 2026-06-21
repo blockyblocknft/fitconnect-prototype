@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { TrainerSession } from '../../data/trainerView'
+import { SlotPicker, type SlotSelection } from '../SlotPicker'
+import { fmtTime, dayLabel } from '../../data/calendar'
 import { Icon } from '../Icon'
 
 const inputStyle: React.CSSProperties = {
@@ -7,6 +9,7 @@ const inputStyle: React.CSSProperties = {
   fontSize: 12, fontFamily: 'var(--fc-font-body)', outline: 'none',
 }
 const num = (v: string, min: number) => Math.max(min, Math.round(Number(v) || min))
+const DURATIONS = [30, 45, 60, 90]
 
 export function SessionFormModal(
   { onClose, onSave, session }: { onClose: () => void; onSave: (s: TrainerSession) => void; session?: TrainerSession },
@@ -14,20 +17,29 @@ export function SessionFormModal(
   const editing = !!session
   const booked = session?.clients.length ?? 0
   const [title, setTitle] = useState(session?.title ?? '')
-  const [time, setTime] = useState(session?.time ?? 'Tomorrow · 6:00 AM')
   const [mode, setMode] = useState<'online' | 'inperson'>(session?.mode ?? 'inperson')
   const [place, setPlace] = useState(session?.place ?? '')
   const [capacity, setCapacity] = useState(String(session?.capacity ?? 10))
+  const [duration, setDuration] = useState(session?.durationMin ?? 60)
+  const [slot, setSlot] = useState<SlotSelection | null>(
+    session?.dayOffset != null && session.start != null
+      ? { dayOffset: session.dayOffset, start: session.start, dateLabel: '', timeLabel: '' }
+      : null,
+  )
 
-  // Capacity can never drop below the number of clients already booked.
   const minCap = Math.max(1, booked)
+  const ready = !!title.trim() && !!slot
 
   const save = () => {
-    if (!title.trim()) return
+    if (!ready || !slot) return
+    const today = slot.dayOffset === 0
+    const time = `${dayLabel(slot.dayOffset)} · ${fmtTime(slot.start)}`
     onSave({
-      id: session?.id ?? `ts-${Date.now()}`, title: title.trim(), time, today: time.startsWith('Today'),
+      id: session?.id ?? `ts-${Date.now()}`, title: title.trim(), time, today,
       mode, place: place.trim() || (mode === 'online' ? 'Google Meet' : 'TBD'),
       capacity: num(capacity, minCap), clients: session?.clients ?? [],
+      program: session?.program ?? 'Custom session',
+      dayOffset: slot.dayOffset, start: slot.start, durationMin: duration,
     })
   }
 
@@ -50,7 +62,19 @@ export function SessionFormModal(
         </div>
 
         {field('Title', <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Evening HIIT" style={inputStyle} />)}
-        {field('When', <input value={time} onChange={(e) => setTime(e.target.value)} style={inputStyle} />)}
+        {field('Duration', (
+          <div style={{ display: 'flex', gap: 7 }}>
+            {DURATIONS.map((d) => (
+              <button key={d} onClick={() => setDuration(d)}
+                style={{ flex: 1, border: 'none', borderRadius: 9, padding: '7px 0', fontSize: 11, fontWeight: 600,
+                  background: duration === d ? 'var(--fc-indigo)' : 'var(--fc-surface)', color: duration === d ? '#fff' : 'var(--fc-muted)' }}>
+                {d}m</button>
+            ))}
+          </div>
+        ))}
+        {field('Open slot · within your working hours', (
+          <SlotPicker durationMin={duration} value={slot} excludeId={session?.id} onChange={setSlot} />
+        ))}
         {field('Mode', (
           <div style={{ display: 'flex', gap: 8 }}>
             {(['inperson', 'online'] as const).map((m) => (
@@ -73,8 +97,8 @@ export function SessionFormModal(
           </>
         ))}
 
-        <button onClick={save} disabled={!title.trim()}
-          style={{ width: '100%', marginTop: 5, background: title.trim() ? 'var(--fc-indigo)' : 'rgba(90,74,227,0.4)', color: '#fff',
+        <button onClick={save} disabled={!ready}
+          style={{ width: '100%', marginTop: 5, background: ready ? 'var(--fc-indigo)' : 'rgba(90,74,227,0.4)', color: '#fff',
             border: 'none', borderRadius: 13, padding: 13, fontSize: 14, fontWeight: 600 }}>
           {editing ? 'Save changes' : 'Create session'}</button>
       </div>

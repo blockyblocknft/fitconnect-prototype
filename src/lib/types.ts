@@ -28,7 +28,7 @@ export interface TrainerEvent {
   spotsMax: number
 }
 
-export type Discipline = 'mobility' | 'strengthening' | 'hiit'
+export type Discipline = 'mobility' | 'strengthening' | 'hiit' | 'circuit' | 'pilates' | 'hyrox'
 export type TrainingMode = 'online' | 'outdoor'
 
 export interface Trainer {
@@ -79,6 +79,9 @@ export interface Booking {
   programName: string
   trainerName: string
   status: BookingStatus
+  kind: SessionType        // 1:1 vs group
+  mode: 'online' | 'inperson'
+  discipline: Discipline   // drives the per-session workout plan
   progressKind: 'weeks' | 'days'
   current: number
   total: number

@@ -7,6 +7,6 @@ describe('EventsScreen', () => {
   it('renders global events with capacity', () => {
     render(<NavProvider><EventsScreen /></NavProvider>)
     expect(screen.getByText('Weekend trail run')).toBeInTheDocument()
-    expect(screen.getByText('14 / 15 left')).toBeInTheDocument()
+    expect(screen.getByText('1 left')).toBeInTheDocument()
   })
 })

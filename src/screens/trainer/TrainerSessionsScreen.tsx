@@ -4,6 +4,7 @@ import {
   trainerSessions, addTrainerSession, updateTrainerSession, removeTrainerSession, type TrainerSession,
 } from '../../data/trainerView'
 import { CapacityBar } from '../../components/CapacityBar'
+import { SessionTags } from '../../components/SessionTags'
 import { SessionFormModal } from '../../components/trainer/SessionFormModal'
 import { Icon } from '../../components/Icon'
 
@@ -56,8 +57,11 @@ export function TrainerSessionsScreen() {
           style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 10, cursor: 'pointer' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 9 }}>
             <div style={{ minWidth: 0 }}>
-              <div className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>{x.title}</div>
-              <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap', marginBottom: 3 }}>
+                <span className="fc-display" style={{ fontSize: 13, fontWeight: 600 }}>{x.title}</span>
+                <SessionTags capacity={x.capacity} mode={x.mode} />
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--fc-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                 <Icon name={x.mode === 'online' ? 'video' : 'map-pin'} size={12} color="var(--fc-muted)" />{x.time} · {x.place}
               </div>
             </div>

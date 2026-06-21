@@ -73,7 +73,8 @@ export function LogMealScreen() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <span className="fc-display fc-tabnum" style={{ fontSize: 13, fontWeight: 700 }}>{m.cal}</span>
-              <button aria-label="Delete meal" onClick={() => setMeals((list) => list.filter((x) => x.id !== m.id))}
+              <button aria-label="Delete meal"
+                onClick={() => { const i = mealDay.meals.findIndex((x) => x.id === m.id); if (i >= 0) mealDay.meals.splice(i, 1); setMeals([...mealDay.meals]) }}
                 style={{ background: 'transparent', border: 'none', display: 'flex' }}>
                 <Icon name="trash" size={15} color="#C4C4CF" />
               </button>
@@ -97,7 +98,7 @@ export function LogMealScreen() {
 
       {showModal && (
         <MealEntryModal onClose={() => setShowModal(false)}
-          onSave={(meal) => { setMeals((list) => [...list, meal]); setShowModal(false) }} />
+          onSave={(meal) => { mealDay.meals.push(meal); setMeals([...mealDay.meals]); setShowModal(false) }} />
       )}
     </div>
   )

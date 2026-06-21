@@ -1,15 +1,19 @@
 import { useState } from 'react'
-import type { BookedSession } from '../../lib/types'
+import type { BookedSession, Discipline } from '../../lib/types'
 import { SESSION_STATUS } from '../../lib/sessionStatus'
+import { WORKOUTS } from '../../data/workouts'
+import { WorkoutPlan } from '../WorkoutPlan'
 import { Icon } from '../Icon'
 
-export function SessionItem({ session }: { session: BookedSession }) {
+export function SessionItem({ session, discipline, onReschedule }: { session: BookedSession; discipline: Discipline; onReschedule?: () => void }) {
   const [draft, setDraft] = useState('')
   const [rating, setRating] = useState(0)
   const [note, setNote] = useState('')
   const [sent, setSent] = useState(false)
+  const [showPlan, setShowPlan] = useState(false)
   const s = SESSION_STATUS[session.status]
   const askable = session.status === 'confirmed'
+  const w = WORKOUTS[discipline]
   return (
     <div style={{ border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: '11px 12px', marginBottom: 11 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
@@ -23,6 +27,27 @@ export function SessionItem({ session }: { session: BookedSession }) {
         </div>
         <span style={{ fontSize: 10, fontWeight: 600, color: s.fg }}>{s.label}</span>
       </div>
+      {/* Session plan — workout breakdown for this category */}
+      <div style={{ border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 10, marginBottom: 8, overflow: 'hidden' }}>
+        <button onClick={() => setShowPlan((v) => !v)}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 7, background: 'var(--fc-surface)', border: 'none',
+            padding: '8px 10px', cursor: 'pointer', textAlign: 'left' }}>
+          <Icon name="barbell" size={14} color="var(--fc-indigo)" />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ fontSize: 11.5, fontWeight: 600 }}>Session plan</span>
+            <span style={{ display: 'block', fontSize: 9.5, color: 'var(--fc-muted)' }}>{w.focus}</span>
+          </span>
+          <Icon name={showPlan ? 'chevron-down' : 'chevron-right'} size={15} color="var(--fc-muted)" />
+        </button>
+        {showPlan && <div style={{ padding: '9px 11px' }}><WorkoutPlan discipline={discipline} /></div>}
+      </div>
+      {onReschedule && (
+        <button onClick={onReschedule}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: 'var(--fc-surface)', border: 'none',
+            borderRadius: 8, padding: '5px 9px', fontSize: 11, fontWeight: 600, color: 'var(--fc-indigo)', marginBottom: 7 }}>
+          <Icon name="calendar" size={13} color="var(--fc-indigo)" /> Reschedule
+        </button>
+      )}
       {session.feedback && (
         <div style={{ background: '#F0FAF4', borderRadius: 10, padding: '8px 10px', marginBottom: 7 }}>
           <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--fc-rating-green)', marginBottom: 2,

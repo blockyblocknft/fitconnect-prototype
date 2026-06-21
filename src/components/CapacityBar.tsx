@@ -9,7 +9,7 @@ export function CapacityBar({ taken, max }: { taken: number; max: number }) {
       </div>
       <span className="fc-tabnum" style={{ fontSize: 10, fontWeight: 600, whiteSpace: 'nowrap',
         color: full ? 'var(--fc-coral)' : 'var(--fc-muted)' }}>
-        {full ? `${taken} / ${max} left` : `${taken} / ${max} spots`}
+        {full ? (max - taken <= 0 ? 'Full' : `${max - taken} left`) : `${taken} / ${max} spots`}
       </span>
     </div>
   )
