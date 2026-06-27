@@ -5,7 +5,9 @@ import { weekMeta } from '../data/calendar'
 import { FOCUS_CATEGORIES } from '../data/disciplines'
 import { groupClasses, type GroupClass, type GroupSlot } from '../data/groupClasses'
 import { addSingleBooking } from '../data/bookings'
+import { initials } from '../data/profile'
 import { CapacityBar } from './CapacityBar'
+import { GroupBookModal } from './GroupBookModal'
 import { Icon } from './Icon'
 
 const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -40,6 +42,7 @@ export function GroupShowtimes() {
   const [sort, setSort] = useState<Sort>('earliest')
   const [sortOpen, setSortOpen] = useState(false)
 
+  const [pending, setPending] = useState<{ cls: GroupClass; slot: GroupSlot } | null>(null)
   const meta = days.find((d) => d.offset === sel)!
   const dateLabel = meta.isToday ? 'Today' : `${meta.weekday} ${meta.dayNum}`
 
@@ -50,8 +53,10 @@ export function GroupShowtimes() {
     return sort === 'earliest' ? av - bv : bv - av
   })
 
-  const book = (cls: GroupClass, slot: GroupSlot) => {
-    addSingleBooking(cls.title, cls.trainerName, { dayOffset: sel, dateLabel, timeLabel: slot.time }, 'group', cls.mode, cls.discipline)
+  const confirmBooking = () => {
+    if (!pending) return
+    addSingleBooking(pending.cls.title, pending.cls.trainerName, { dayOffset: sel, dateLabel, timeLabel: pending.slot.time }, 'group', pending.cls.mode, pending.cls.discipline)
+    setPending(null)
     nav.push({ name: 'bookingConfirm' })
   }
   const sortLabel = SORTS.find((s) => s.key === sort)!.label
@@ -146,20 +151,20 @@ export function GroupShowtimes() {
       {list.map((cls) => (
         <div key={cls.id} style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 11 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 9, background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '0 0 auto' }}>
-              <Icon name={cls.mode === 'online' ? 'video' : 'map-pin'} size={17} color="var(--fc-indigo)" />
-            </div>
+            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--fc-coral)', color: '#fff', flex: '0 0 auto',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 12 }}>{initials(cls.trainerName)}</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>{cls.title}</div>
-              <div style={{ fontSize: 10.5, color: 'var(--fc-muted)' }}>{cls.trainerName} · {cls.place}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--fc-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Icon name={cls.mode === 'online' ? 'video' : 'map-pin'} size={12} color="var(--fc-muted)" />{cls.trainerName} · {cls.place}
+              </div>
             </div>
             <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--fc-indigo)', background: 'var(--fc-indigo-tint)', padding: '2px 7px', borderRadius: 999 }}>Group</span>
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {cls.slots.map((slot) => (
-              <button key={slot.time} onClick={() => book(cls, slot)}
+              <button key={slot.time} onClick={() => setPending({ cls, slot })}
                 style={{ border: '1.5px solid var(--fc-green)', borderRadius: 8, padding: '7px 11px', background: '#fff',
                   textAlign: 'center', cursor: 'pointer', minWidth: 84 }}>
                 <div className="fc-display" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fc-rating-green)' }}>{slot.time}</div>
@@ -174,6 +179,11 @@ export function GroupShowtimes() {
           </div>
         </div>
       ))}
+
+      {pending && (
+        <GroupBookModal cls={pending.cls} slot={pending.slot} dateLabel={dateLabel}
+          onClose={() => setPending(null)} onConfirm={confirmBooking} />
+      )}
     </div>
   )
 }
