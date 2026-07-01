@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { todayStats, trainerSessions } from '../../data/trainerView'
 import { customRequests, resolveCustomRequest } from '../../data/sessionRequests'
 import { clients, clientDue, rosterStats, getClient } from '../../data/clients'
-import { waitingReplies, lastMessage } from '../../data/messages'
+import { waitingReplies, lastMessage, sendMessage } from '../../data/messages'
 import { useNav } from '../../nav/NavContext'
 import { Icon } from '../../components/Icon'
 
@@ -128,7 +128,7 @@ export function TrainerTodayScreen() {
         () => nav.push({ name: 'trClientProfile', params: { id: c.id } }), '#FCEBEB', '#A32D2D'))}
 
       {notLogging.map((c) => actionRow(c.initials, `${c.name} · not logging meals`, c.plan,
-        <button onClick={(e) => { e.stopPropagation(); setNudged((n) => ({ ...n, [c.id]: true })) }} disabled={nudged[c.id]}
+        <button onClick={(e) => { e.stopPropagation(); sendMessage(c.id, `Hi ${c.name.split(' ')[0]} — noticed no meals logged lately. Snap today's meals in the app and ping me if you're stuck 🙌`, 'coach'); setNudged((n) => ({ ...n, [c.id]: true })) }} disabled={nudged[c.id]}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 4, border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 10.5, fontWeight: 600,
             background: nudged[c.id] ? 'var(--fc-surface)' : 'var(--fc-coral)', color: nudged[c.id] ? 'var(--fc-rating-green)' : '#fff' }}>
           <Icon name={nudged[c.id] ? 'check' : 'bell'} size={12} color={nudged[c.id] ? 'var(--fc-rating-green)' : '#fff'} /> {nudged[c.id] ? 'Nudged' : 'Nudge'}

@@ -6,7 +6,7 @@ export type ScreenName =
   | 'events' | 'booked' | 'programDetail' | 'logMeal' | 'history'
   | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature' | 'coachChat'
   | 'trToday' | 'trSessions' | 'trCoach' | 'trRoster' | 'trCalendar' | 'trHours'
-  | 'trClients' | 'trClientProfile' | 'trPayments' | 'trClientChat'
+  | 'trClients' | 'trClientProfile' | 'trPayments' | 'trClientChat' | 'trMessages'
 
 export interface Screen { name: ScreenName; params?: Record<string, string> }
 export type TabKey = 'sessions' | 'events' | 'booked' | 'logMeal' | 'fittii' | 'trToday' | 'trSessions' | 'trCoach' | 'trCalendar' | 'trHours' | 'trClients'

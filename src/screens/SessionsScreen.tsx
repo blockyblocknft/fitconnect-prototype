@@ -9,12 +9,18 @@ import { SegmentedToggle } from '../components/SegmentedToggle'
 import { OfferingCard, type Offering } from '../components/cards/OfferingCard'
 import { GroupBookModal } from '../components/GroupBookModal'
 import { RequestSessionModal } from '../components/RequestSessionModal'
+import { clientRequests, type RequestStatus } from '../data/sessionRequests'
 import { CapacityBar } from '../components/CapacityBar'
 import { initials } from '../data/profile'
 import { Icon } from '../components/Icon'
 import { RatingPill } from '../components/RatingPill'
 
 const CATEGORIES = FOCUS_CATEGORIES
+const REQ_STATUS: Record<RequestStatus, { label: string; bg: string; fg: string }> = {
+  awaiting: { label: 'Awaiting', bg: '#FAEEDA', fg: '#854F0B' },
+  confirmed: { label: 'Confirmed', bg: '#E4F3EA', fg: 'var(--fc-rating-green)' },
+  declined: { label: 'Declined', bg: '#FCEBEB', fg: '#A32D2D' },
+}
 const MODES: { key: TrainingMode; label: string; icon: string; accent: string }[] = [
   { key: 'online', label: 'Online', icon: 'world', accent: 'var(--fc-green)' },
   { key: 'outdoor', label: 'Outdoor', icon: 'tree', accent: '#E24B4A' },
@@ -33,6 +39,7 @@ export function SessionsScreen() {
   const [customReq, setCustomReq] = useState(false)
   const [reqSent, setReqSent] = useState(false)
   const coach = trainers[0]
+  const myRequests = clientRequests()
 
   const focusOk = (d: Discipline | null) => !disc || d === disc
 
@@ -97,6 +104,26 @@ export function SessionsScreen() {
           </div>
         )}
       </div>
+
+      {/* Your custom requests — status updates as the coach confirms / declines */}
+      {myRequests.length > 0 && (
+        <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 12 }}>
+          <div className="fc-display" style={{ fontSize: 12, fontWeight: 700, marginBottom: 8 }}>Your requests to {coach.name}</div>
+          {myRequests.map((r) => {
+            const s = REQ_STATUS[r.status]
+            return (
+              <div key={r.id} style={{ display: 'flex', alignItems: 'center', gap: 8, paddingTop: 8,
+                borderTop: r.id === myRequests[0].id ? 'none' : '0.5px solid rgba(20,20,43,0.07)', marginTop: r.id === myRequests[0].id ? 0 : 8 }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600 }}>{r.focus}</div>
+                  <div style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{r.when} · {r.mode === 'online' ? 'Online' : 'In person'}</div>
+                </div>
+                <span style={{ fontSize: 9, fontWeight: 700, color: s.fg, background: s.bg, padding: '2px 9px', borderRadius: 999 }}>{s.label}</span>
+              </div>
+            )
+          })}
+        </div>
+      )}
 
       {/* Primary axes: 1:1 vs Group, and Online vs Outdoor */}
       <SegmentedToggle options={[{ value: '1to1', label: '1-to-1' }, { value: 'group', label: 'Group' }]}

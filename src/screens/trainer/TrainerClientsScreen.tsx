@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNav } from '../../nav/NavContext'
 import { clients, clientDue, attendancePct, needsAttention, rosterStats, addClient, PLAN_CATALOG, type Client } from '../../data/clients'
 import { STATUS_LABEL } from '../../data/trainerView'
-import { lastMessage, unread } from '../../data/messages'
+import { lastMessage, unread, waitingReplies } from '../../data/messages'
 import { Icon } from '../../components/Icon'
 
 const rupees = (n: number) => '₹' + n.toLocaleString('en-IN')
@@ -21,6 +21,7 @@ export function TrainerClientsScreen() {
   const [filter, setFilter] = useState<Filter>('all')
   const [showAdd, setShowAdd] = useState(false)
   const stats = rosterStats()
+  const waitingCount = waitingReplies().length
   const query = q.trim().toLowerCase()
 
   const list = clients.filter((c) => {
@@ -55,6 +56,12 @@ export function TrainerClientsScreen() {
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search clients, plans…"
             style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 12.5, fontFamily: 'var(--fc-font-body)' }} />
         </div>
+        <button onClick={() => nav.push({ name: 'trMessages' })} aria-label="Messages"
+          style={{ position: 'relative', flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: '#fff', border: '0.5px solid rgba(20,20,43,0.14)', borderRadius: 10, padding: '9px 11px' }}>
+          <Icon name="message-2" size={16} color="var(--fc-indigo)" />
+          {waitingCount > 0 && <span style={{ position: 'absolute', top: -5, right: -5, minWidth: 16, height: 16, padding: '0 4px', borderRadius: 999, background: 'var(--fc-coral)', color: '#fff', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{waitingCount}</span>}
+        </button>
         <button onClick={() => setShowAdd(true)} aria-label="Add client"
           style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 4, background: 'var(--fc-indigo)', color: '#fff',
             border: 'none', borderRadius: 10, padding: '9px 12px', fontSize: 12, fontWeight: 600 }}>

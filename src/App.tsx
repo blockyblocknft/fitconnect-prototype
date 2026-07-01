@@ -27,6 +27,7 @@ import { TrainerClientProfileScreen } from './screens/trainer/TrainerClientProfi
 import { TrainerPaymentsScreen } from './screens/trainer/TrainerPaymentsScreen'
 import { TrainerClientChatScreen } from './screens/trainer/TrainerClientChatScreen'
 import { CoachChatScreen } from './screens/CoachChatScreen'
+import { TrainerMessagesScreen } from './screens/trainer/TrainerMessagesScreen'
 
 const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal', 'fittii', 'trToday', 'trSessions', 'trCoach', 'trCalendar', 'trHours', 'trClients'])
 const TITLES: Record<string, string> = {
@@ -34,7 +35,7 @@ const TITLES: Record<string, string> = {
   trainer: 'Trainer', checkout: 'Confirm booking', bookingConfirm: 'Booking',
   programDetail: 'Program', profile: 'Profile', history: 'Session history', fittiiFeature: 'Feedback thread', coachChat: 'Coach',
   trToday: 'Today', trSessions: 'Create session', trCoach: 'Coach', trRoster: 'Session roster', trCalendar: 'Calendar', trHours: 'Work hours',
-  trClients: 'Clients', trClientProfile: 'Client', trPayments: 'Payments', trClientChat: 'Chat',
+  trClients: 'Clients', trClientProfile: 'Client', trPayments: 'Payments', trClientChat: 'Chat', trMessages: 'Messages',
 }
 
 function Shell() {
@@ -68,6 +69,7 @@ function Shell() {
     case 'trClientProfile': body = <TrainerClientProfileScreen clientId={cur.params!.id} />; break
     case 'trPayments': body = <TrainerPaymentsScreen />; break
     case 'trClientChat': body = <TrainerClientChatScreen clientId={cur.params!.id} />; break
+    case 'trMessages': body = <TrainerMessagesScreen />; break
   }
 
   const title = cur.name === 'profileDetail' ? (cur.params?.title ?? 'Settings') : TITLES[cur.name]

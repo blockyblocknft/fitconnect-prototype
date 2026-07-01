@@ -29,6 +29,7 @@ export const lastMessage = (clientId: string) => {
 }
 
 export const hasThread = (clientId: string) => store.has(clientId)
+export const threadClientIds = () => [...store.keys()]
 // "Unread" for the coach = the client sent the most recent message.
 export const unread = (clientId: string) => { const l = lastMessage(clientId); return !!l && l.from === 'client' }
 export const waitingReplies = () => [...store.keys()].filter(unread)

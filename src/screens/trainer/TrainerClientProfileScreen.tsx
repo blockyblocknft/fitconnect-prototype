@@ -1,7 +1,10 @@
 import { useState } from 'react'
 import { useNav } from '../../nav/NavContext'
 import { getClient, clientDue, attendancePct, markFullyPaid, setClientNote } from '../../data/clients'
+import { sendMessage } from '../../data/messages'
 import { STATUS_LABEL } from '../../data/trainerView'
+
+const nudgeText = (first: string) => `Hi ${first} — checking in! How's training going? Drop today's meals in the log and ping me if anything feels off 🙌`
 import { assessments } from '../../data/progress'
 import { Icon } from '../../components/Icon'
 
@@ -52,7 +55,7 @@ export function TrainerClientProfileScreen({ clientId }: { clientId: string }) {
               border: 'none', borderRadius: 10, padding: '9px 0', fontSize: 12, fontWeight: 600 }}>
             <Icon name="message-circle" size={14} color="#fff" /> Message
           </button>
-          <button onClick={() => flash(`Nudge sent to ${c.name}`)}
+          <button onClick={() => { sendMessage(c.id, nudgeText(c.name.split(' ')[0]), 'coach'); flash('Nudge sent to chat') }}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)',
               border: 'none', borderRadius: 10, padding: '9px 0', fontSize: 12, fontWeight: 600 }}>
             <Icon name="bell" size={14} color="var(--fc-indigo)" /> Nudge
