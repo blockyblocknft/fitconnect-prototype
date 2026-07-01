@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { LoggedMeal } from '../lib/types'
 import { mealDay } from '../data/meal'
+import { syncClientToday } from '../data/progress'
+import { clients } from '../data/clients'
 import { CalorieRing } from '../components/meal/CalorieRing'
 import { TrackerChip } from '../components/meal/TrackerChip'
 import { MealEntryModal } from '../components/meal/MealEntryModal'
@@ -22,10 +24,16 @@ function MacroBar({ label, value, target, color }: { label: string; value: numbe
   )
 }
 
+// The shared meal log is keyed by the client's name (same key the coach uses).
+const LIVE_KEY = clients.find((c) => c.live)?.name ?? clients[0].name
+
 export function LogMealScreen() {
   const [meals, setMeals] = useState<LoggedMeal[]>(mealDay.meals)
   const [showModal, setShowModal] = useState(false)
   const t = mealDay.targets
+
+  // Mirror today's log into the shared store so the coach sees what's logged.
+  useEffect(() => { syncClientToday(LIVE_KEY, meals) }, [meals])
 
   const eaten = meals.reduce((n, m) => n + m.cal, 0)
   const protein = meals.reduce((n, m) => n + m.protein, 0)
@@ -43,7 +51,7 @@ export function LogMealScreen() {
             <Button full style={{ fontSize: 12, padding: 9 }} onClick={() => setShowModal(true)}>
               <Icon name="plus" size={14} color="#fff" /> Log meal
             </Button>
-            <Button variant="secondary" style={{ fontSize: 12, padding: '9px 12px' }} aria-label="Snap a photo">
+            <Button variant="secondary" style={{ fontSize: 12, padding: '9px 12px' }} aria-label="Snap a photo" onClick={() => setShowModal(true)}>
               <Icon name="camera" size={14} color="var(--fc-indigo)" />
             </Button>
           </div>

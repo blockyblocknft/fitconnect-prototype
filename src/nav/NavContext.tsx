@@ -4,7 +4,7 @@ import type { Role } from '../lib/types'
 export type ScreenName =
   | 'sessions' | 'trainer' | 'checkout' | 'bookingConfirm'
   | 'events' | 'booked' | 'programDetail' | 'logMeal' | 'history'
-  | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature' | 'coachChat'
+  | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature' | 'coachChat' | 'clientPayments' | 'notifications'
   | 'trToday' | 'trSessions' | 'trCoach' | 'trRoster' | 'trCalendar' | 'trHours'
   | 'trClients' | 'trClientProfile' | 'trPayments' | 'trClientChat' | 'trMessages'
 

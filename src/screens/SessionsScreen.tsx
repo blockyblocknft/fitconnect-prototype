@@ -10,7 +10,7 @@ import { OfferingCard, type Offering } from '../components/cards/OfferingCard'
 import { GroupBookModal } from '../components/GroupBookModal'
 import { RequestSessionModal } from '../components/RequestSessionModal'
 import { clientRequests, type RequestStatus } from '../data/sessionRequests'
-import { clients, clientDue, attendancePct } from '../data/clients'
+import { clients, clientDue, attendancePct, recordPayment } from '../data/clients'
 import { lastMessage } from '../data/messages'
 import { CapacityBar } from '../components/CapacityBar'
 import { initials } from '../data/profile'
@@ -40,6 +40,7 @@ export function SessionsScreen() {
   const [pending, setPending] = useState<{ cls: GroupClass; slot: GroupSlot } | null>(null)
   const [customReq, setCustomReq] = useState(false)
   const [reqSent, setReqSent] = useState(false)
+  const [, force] = useState(0)
   const coach = trainers[0]
   const myRequests = clientRequests()
   const me = clients.find((c) => c.live) ?? clients[0]
@@ -134,6 +135,12 @@ export function SessionsScreen() {
             <Icon name="calendar" size={13} color="var(--fc-indigo)" />
             Next: <b style={{ color: 'var(--fc-ink)', fontWeight: 600 }}>{nextUp.session}</b> · {nextUp.date}
           </div>
+        )}
+        {myDue > 0 && (
+          <button onClick={() => { recordPayment(me.id, myDue); force((n) => n + 1) }}
+            style={{ width: '100%', marginTop: 10, background: 'var(--fc-green)', color: '#fff', border: 'none', borderRadius: 10, padding: 10, fontSize: 12.5, fontWeight: 600 }}>
+            Pay balance · ₹{myDue.toLocaleString('en-IN')}
+          </button>
         )}
       </div>
 

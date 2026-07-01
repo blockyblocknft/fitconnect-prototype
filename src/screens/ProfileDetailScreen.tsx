@@ -90,10 +90,52 @@ function AccountEditor({ kind }: { kind: 'account' | 'goals' }) {
   )
 }
 
+const FAQS = [
+  { q: 'How do session requests work?', a: 'Pick a focus, slot and mode, then send. Your coach confirms or declines and you’ll see the status update on Book sessions and in Notifications.' },
+  { q: 'When is my advance charged?', a: 'Your advance is held when you book and released to the coach once they confirm. The balance is due before the program starts.' },
+  { q: 'Can I reschedule or cancel?', a: 'Yes — open the session in Booked and tap Reschedule, or cancel a booking free before the 24-hour cutoff for a full refund of the advance.' },
+  { q: 'How does the coach see my meals?', a: 'Everything you log in Log Meal syncs to your program’s Meal log, where your coach reviews each day and leaves notes.' },
+]
+
+function HelpSection() {
+  const nav = useNav()
+  const [open, setOpen] = useState<number | null>(0)
+  return (
+    <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1, overflowY: 'auto' }}>
+      <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--fc-muted)', margin: '2px 0 8px' }}>FREQUENTLY ASKED</div>
+      {FAQS.map((f, i) => (
+        <div key={i} style={{ ...card, marginBottom: 8, padding: 0, overflow: 'hidden' }}>
+          <button onClick={() => setOpen(open === i ? null : i)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 8, background: 'transparent', border: 'none', padding: '12px 13px', textAlign: 'left', cursor: 'pointer' }}>
+            <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600 }}>{f.q}</span>
+            <Icon name={open === i ? 'chevron-down' : 'chevron-right'} size={16} color="var(--fc-muted)" />
+          </button>
+          {open === i && <div style={{ padding: '0 13px 12px', fontSize: 11.5, color: 'var(--fc-muted)', lineHeight: 1.55 }}>{f.a}</div>}
+        </div>
+      ))}
+      <div style={{ ...card, marginTop: 4 }}>
+        <div style={{ fontSize: 12.5, fontWeight: 700, marginBottom: 3 }}>Still need help?</div>
+        <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginBottom: 10 }}>We usually reply within a few hours.</div>
+        {nav.role === 'client' && (
+          <button onClick={() => nav.push({ name: 'coachChat' })}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 11, padding: 11, fontSize: 12.5, fontWeight: 600, marginBottom: 8 }}>
+            <Icon name="message-circle" size={15} color="#fff" /> Message your coach
+          </button>
+        )}
+        <a href="mailto:support@fitconnect.app"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)', borderRadius: 11, padding: 11, fontSize: 12.5, fontWeight: 600, textDecoration: 'none' }}>
+          <Icon name="mail" size={15} color="var(--fc-indigo)" /> Email support
+        </a>
+      </div>
+    </div>
+  )
+}
+
 export function ProfileDetailScreen({ section }: { section: string }) {
   const history = customRequests.filter((r) => r.status !== 'awaiting')
 
   if (section === 'account' || section === 'goals') return <AccountEditor kind={section} />
+  if (section === 'help') return <HelpSection />
 
   if (section === 'requests') {
     return (

@@ -34,6 +34,10 @@ export function addAssessment(clientId: string) {
 export function captureAfterPhoto(clientId: string, id: string) {
   const a = assessmentsFor(clientId).find((x) => x.id === id); if (a) a.hasAfter = true
 }
+export function capturePhoto(clientId: string, id: string, which: 'before' | 'after') {
+  const a = assessmentsFor(clientId).find((x) => x.id === id)
+  if (a) { if (which === 'before') a.hasBefore = true; else a.hasAfter = true }
+}
 export function setAssessmentNote(clientId: string, id: string, text: string) {
   const a = assessmentsFor(clientId).find((x) => x.id === id); if (a) a.note = text.trim() || a.note
 }
@@ -136,6 +140,15 @@ export function mealLogFor(key: string): MealLogDay[] {
 export function setDayComment(key: string, id: string, text: string) {
   const day = mealLogFor(key).find((d) => d.id === id)
   if (day) day.trainerComment = text.trim() || undefined
+}
+
+// The client's live logging feeds "today" (day 0) of their shared log, so the
+// coach's meal-log reviewer and the program Meal-log tab reflect it.
+export function syncClientToday(key: string, meals: { type: string; name: string; cal: number }[]) {
+  const log = mealLogFor(key)
+  if (!log[0]) return
+  log[0].meals = meals.map((m) => ({ type: m.type, name: m.name, cal: m.cal }))
+  log[0].total = meals.reduce((n, m) => n + m.cal, 0)
 }
 
 export const mealLogStats = (key = 'Prabu S.') => {

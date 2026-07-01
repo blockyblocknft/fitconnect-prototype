@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getBooking, cancelBooking, rescheduleSession } from '../data/bookings'
-import { assessments, mealLog, mealLogStats } from '../data/progress'
+import { assessmentsFor, capturePhoto, addAssessment, mealLog, mealLogStats } from '../data/progress'
+import { clients } from '../data/clients'
 import { useNav } from '../nav/NavContext'
 import { SessionItem } from '../components/cards/SessionItem'
 import { ProgressStrip } from '../components/booked/ProgressStrip'
@@ -33,6 +34,8 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
   const [chatSent, setChatSent] = useState('')
   const [qaSent, setQaSent] = useState(false)
   const [, force] = useState(0)
+  const bookingClientId = clients.find((c) => c.live)?.id ?? clients[0].id
+  const assessments = assessmentsFor(bookingClientId)
   const b = getBooking(bookingId)
 
   useEffect(() => {
@@ -161,8 +164,11 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
         {tab === 'assessment' && (
           <>
             <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginBottom: 11, lineHeight: 1.5 }}>
-              Monthly posture check — your coach compares before / after photos to track correction.
+              Monthly posture check — tap a tile to add your photo. Your coach compares before / after to track correction.
             </div>
+            {assessments.length === 0 && (
+              <div style={{ fontSize: 11.5, color: 'var(--fc-muted)', marginBottom: 11 }}>No posture check yet — capture your baseline below.</div>
+            )}
             {assessments.map((a) => (
               <div key={a.id} style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 11 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
@@ -170,26 +176,28 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
                   <span style={{ fontSize: 10.5, color: 'var(--fc-muted)' }}>{a.date}</span>
                 </div>
                 <div style={{ display: 'flex', gap: 9 }}>
-                  {[{ label: 'Before', has: a.hasBefore }, { label: 'After', has: a.hasAfter }].map((ph) => (
-                    <div key={ph.label} style={{ flex: 1 }}>
+                  {([['before', 'Before', a.hasBefore], ['after', 'After', a.hasAfter]] as const).map(([which, label, has]) => (
+                    <button key={which} onClick={() => { if (!has) { capturePhoto(bookingClientId, a.id, which); force((n) => n + 1) } }}
+                      style={{ flex: 1, padding: 0, border: 'none', background: 'transparent', cursor: has ? 'default' : 'pointer' }}>
                       <div style={{ aspectRatio: '3 / 4', borderRadius: 11, display: 'flex', flexDirection: 'column',
                         alignItems: 'center', justifyContent: 'center', gap: 5,
-                        background: ph.has ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)',
-                        border: ph.has ? 'none' : '1px dashed rgba(20,20,43,0.22)' }}>
-                        <Icon name={ph.has ? 'user-scan' : 'camera-plus'} size={26} color={ph.has ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
-                        <span style={{ fontSize: 10, fontWeight: 600, color: ph.has ? 'var(--fc-indigo)' : 'var(--fc-muted)' }}>
-                          {ph.has ? ph.label : `Add ${ph.label.toLowerCase()}`}
+                        background: has ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)',
+                        border: has ? 'none' : '1px dashed rgba(20,20,43,0.22)' }}>
+                        <Icon name={has ? 'user-scan' : 'camera-plus'} size={26} color={has ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
+                        <span style={{ fontSize: 10, fontWeight: 600, color: has ? 'var(--fc-indigo)' : 'var(--fc-muted)' }}>
+                          {has ? label : `Add ${label.toLowerCase()}`}
                         </span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--fc-ink)', lineHeight: 1.5, marginTop: 9 }}>{a.note}</div>
               </div>
             ))}
-            <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
+            <button onClick={() => { addAssessment(bookingClientId); force((n) => n + 1) }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
               background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 600 }}>
-              <Icon name="camera-plus" size={16} color="#fff" /> Add this month’s photos
+              <Icon name="camera-plus" size={16} color="#fff" /> {assessments.length ? 'Add this month’s photos' : 'Capture baseline'}
             </button>
           </>
         )}

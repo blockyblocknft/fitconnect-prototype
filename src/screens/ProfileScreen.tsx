@@ -1,8 +1,21 @@
 import { useNav } from '../nav/NavContext'
 import { bookings } from '../data/bookings'
 import { coachPrograms } from '../data/coach'
+import { trainers } from '../data/trainers'
+import { mealLogFor } from '../data/progress'
+import { clients } from '../data/clients'
 import { profile, initials } from '../data/profile'
 import { Icon } from '../components/Icon'
+
+// Consecutive days (from today back) with at least one meal logged.
+function loggingStreak() {
+  const me = clients.find((c) => c.live)
+  if (!me) return 0
+  const log = mealLogFor(me.name)
+  let n = 0
+  for (const d of log) { if (d.meals.length > 0) n++; else break }
+  return n
+}
 
 interface MenuRow { key: string; label: string; icon: string }
 const CLIENT_MENU: MenuRow[] = [
@@ -34,17 +47,22 @@ function Stat({ value, label }: { value: string | number; label: string }) {
 export function ProfileScreen() {
   const nav = useNav()
   const trainer = nav.role === 'trainer'
-  const openDetail = (row: MenuRow) => nav.push({ name: 'profileDetail', params: { section: row.key, title: row.label } })
+  const openDetail = (row: MenuRow) => {
+    if (row.key === 'payouts') return nav.push({ name: 'trPayments' })         // trainer → real ledger
+    if (row.key === 'payments') return nav.push({ name: 'clientPayments' })    // client → real payments
+    if (row.key === 'notifications') return nav.push({ name: 'notifications' }) // real activity feed
+    nav.push({ name: 'profileDetail', params: { section: row.key, title: row.label } })
+  }
 
   const clientStats = {
     programs: bookings.length,
     sessions: bookings.reduce((n, b) => n + b.sessions.length, 0),
-    streak: 5,
+    streak: loggingStreak(),
   }
   const trainerStats = {
     clients: coachPrograms.reduce((n, p) => n + p.sessions.reduce((m, s) => m + s.clients.length, 0), 0),
     programs: coachPrograms.length,
-    rating: 4.9,
+    rating: trainers[0].rating,
   }
   const menu = trainer ? TRAINER_MENU : CLIENT_MENU
 
