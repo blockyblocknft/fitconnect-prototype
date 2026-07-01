@@ -38,5 +38,5 @@ export function clientRequests() {
   return customRequests.filter((r) => r.client === CLIENT.name)
 }
 
-// Trainers a client can address a custom request to.
-export const requestableTrainers = ['Aanand R.', 'Sara M.', 'Kiran V.']
+// The single coach a client addresses custom requests to.
+export const requestableTrainers = ['Aanand R.']

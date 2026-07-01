@@ -5,28 +5,29 @@ import { NavProvider } from '../nav/NavContext'
 import { SessionsScreen } from './SessionsScreen'
 
 describe('SessionsScreen', () => {
-  it('lists 1-to-1 trainers, and group classes with showtimes in Group mode', async () => {
+  it('opens on the coach profile with 1:1 programs, and switches to group classes', async () => {
     render(<NavProvider><SessionsScreen /></NavProvider>)
     expect(screen.getByText('Aanand R.')).toBeInTheDocument()
-    expect(screen.getByText('Sara M.')).toBeInTheDocument()
+    expect(screen.getByText('12-Week Strength Builder')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Group' }))
-    // Group mode switches to the BookMyShow-style showtimes view.
     expect(screen.getByText('Morning HIIT · on-ground')).toBeInTheDocument()
-    expect(screen.getAllByText('6:00 AM').length).toBeGreaterThan(0) // an available slot
+    expect(screen.queryByText('12-Week Strength Builder')).not.toBeInTheDocument()
   })
 
-  it('filters trainers by discipline via the chip row', async () => {
+  it('filters 1:1 programs by Online / Outdoor delivery', async () => {
+    render(<NavProvider><SessionsScreen /></NavProvider>)
+    await userEvent.click(screen.getByRole('button', { name: 'Online' }))
+    expect(screen.getByText('Daily mobility flow')).toBeInTheDocument()           // online
+    expect(screen.queryByText('Daily morning strength')).not.toBeInTheDocument()  // outdoor only
+    await userEvent.click(screen.getByRole('button', { name: 'Outdoor' }))
+    expect(screen.getByText('Daily morning strength')).toBeInTheDocument()
+    expect(screen.queryByText('Daily mobility flow')).not.toBeInTheDocument()
+  })
+
+  it('filters by focus', async () => {
     render(<NavProvider><SessionsScreen /></NavProvider>)
     await userEvent.click(screen.getByRole('button', { name: 'Mobility' }))
-    expect(screen.getByText('Sara M.')).toBeInTheDocument()       // mobility
-    expect(screen.queryByText('Aanand R.')).not.toBeInTheDocument() // strength/hiit
-  })
-
-  it('sorts trainers by price low to high', async () => {
-    render(<NavProvider><SessionsScreen /></NavProvider>)
-    await userEvent.click(screen.getByRole('button', { name: 'Sort by' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Price: low to high' }))
-    const names = screen.getAllByText(/^(Aanand|Sara|Kiran|Meera) /).map((n) => n.textContent)
-    expect(names[0]).toBe('Sara M.') // ₹450, the cheapest
+    expect(screen.getByText('Daily mobility flow')).toBeInTheDocument()
+    expect(screen.queryByText('12-Week Strength Builder')).not.toBeInTheDocument()
   })
 })

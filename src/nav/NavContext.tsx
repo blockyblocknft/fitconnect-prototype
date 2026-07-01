@@ -6,13 +6,14 @@ export type ScreenName =
   | 'events' | 'booked' | 'programDetail' | 'logMeal' | 'history'
   | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature'
   | 'trToday' | 'trSessions' | 'trCoach' | 'trRoster' | 'trCalendar' | 'trHours'
+  | 'trClients' | 'trClientProfile' | 'trPayments'
 
 export interface Screen { name: ScreenName; params?: Record<string, string> }
-export type TabKey = 'sessions' | 'events' | 'booked' | 'logMeal' | 'fittii' | 'trToday' | 'trSessions' | 'trCoach' | 'trCalendar' | 'trHours'
+export type TabKey = 'sessions' | 'events' | 'booked' | 'logMeal' | 'fittii' | 'trToday' | 'trSessions' | 'trCoach' | 'trCalendar' | 'trHours' | 'trClients'
 
 const TAB_ROOT: Record<TabKey, ScreenName> = {
   sessions: 'sessions', events: 'events', booked: 'booked', logMeal: 'logMeal', fittii: 'fittii',
-  trToday: 'trToday', trSessions: 'trSessions', trCoach: 'trCoach', trCalendar: 'trCalendar', trHours: 'trHours',
+  trToday: 'trToday', trSessions: 'trSessions', trCoach: 'trCoach', trCalendar: 'trCalendar', trHours: 'trHours', trClients: 'trClients',
 }
 const HOME_TAB: Record<Role, TabKey> = { client: 'sessions', trainer: 'trToday' }
 

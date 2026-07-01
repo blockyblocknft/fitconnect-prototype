@@ -8,6 +8,7 @@ export interface Program {
   name: string
   category: string
   cadence: 'daily' | 'multi'
+  modes: TrainingMode[]
   scheduleLabel: string
   priceLabel: string
   bestseller?: boolean
@@ -41,6 +42,7 @@ export interface Trainer {
   location: Location
   fromPriceLabel: string
   verified: boolean
+  bio?: string
   trial: { priceLabel: string }
   disciplines: Discipline[]
   modes: TrainingMode[]

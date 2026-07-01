@@ -1,16 +1,19 @@
 import { useNav } from '../nav/NavContext'
 import { Icon } from './Icon'
 
-// A single person in a double-biceps flex: head, short torso, upper arms out
-// and forearms bent up 90° at the elbow with fists held clear of the head.
-// The branded "Fit All" glyph for trainers. Thin lines.
+// A full-body person in a double-biceps flex — head, torso, legs, and arms
+// bent up at the elbow — drawn in the same clean single-line style as the
+// Tabler focus icons (Pilates/Mobility). The branded "Fit All" trainer glyph.
 function FlexGroupIcon({ size = 21, color = 'currentColor' }: { size?: number; color?: string }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color}
-      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12.6" r="2.6" />
-      <path d="M12 15.2 L12 19.2" />
-      <path d="M6.5 14.6 L6.5 19.2 L17.5 19.2 L17.5 14.6" />
+      strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="3.8" r="1.8" />
+      <path d="M12 5.6 L12 13" />
+      <path d="M12 13 L9 20" />
+      <path d="M12 13 L15 20" />
+      <path d="M12 8 L8.3 8.4 L8.9 5" />
+      <path d="M12 8 L15.7 8.4 L15.1 5" />
     </svg>
   )
 }
@@ -38,7 +41,7 @@ export function BottomNav() {
       padding: '9px 14px 12px', background: 'var(--fc-white)', borderTop: '0.5px solid rgba(20,20,43,0.10)' }}>
       {trainer
         ? item('Fit All', 'inbox', homeActive, () => nav.setTab('trToday'),
-            <FlexGroupIcon size={30} color={homeActive ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />)
+            <FlexGroupIcon size={26} color={homeActive ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />)
         : item('Train', 'barbell', homeActive, () => nav.setTab('sessions'))}
       <button onClick={() => nav.setTab(trainer ? 'trSessions' : 'logMeal')} aria-label={trainer ? 'Create' : 'Log meal'}
         style={{ background: 'transparent', border: 'none', textAlign: 'center', marginTop: -14 }}>

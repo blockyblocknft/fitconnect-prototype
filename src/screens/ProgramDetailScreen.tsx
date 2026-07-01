@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getBooking, cancelBooking, rescheduleSession } from '../data/bookings'
+import { assessments, mealLog, mealLogStats } from '../data/progress'
 import { useNav } from '../nav/NavContext'
-import { SegmentedToggle } from '../components/SegmentedToggle'
 import { SessionItem } from '../components/cards/SessionItem'
 import { ProgressStrip } from '../components/booked/ProgressStrip'
 import { NextUpHero, focalSession } from '../components/booked/NextUpHero'
@@ -14,7 +14,14 @@ const DISCUSSION = [
   { who: 'Rahul', role: 'member', text: 'Anyone training tomorrow 6pm? Let’s buddy up.' },
 ]
 
-type Tab = 'schedule' | 'qa' | 'community'
+type Tab = 'schedule' | 'qa' | 'community' | 'assessment' | 'meallog'
+const TILES: { key: Tab; label: string; icon: string }[] = [
+  { key: 'schedule', label: 'Schedule', icon: 'calendar-event' },
+  { key: 'qa', label: 'Q&A', icon: 'message-circle' },
+  { key: 'community', label: 'Community', icon: 'users-group' },
+  { key: 'assessment', label: 'Assessment', icon: 'camera' },
+  { key: 'meallog', label: 'Meal log', icon: 'salad' },
+]
 
 export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: string; focusSessionId?: string }) {
   const nav = useNav()
@@ -62,9 +69,23 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
           </>
         )}
 
-        <SegmentedToggle options={[{ value: 'schedule', label: 'Schedule' }, { value: 'qa', label: 'Q&A' }, { value: 'community', label: 'Community' }]}
-          value={tab} onChange={setTab} />
-        <div style={{ height: 13 }} />
+        {/* Section tiles */}
+        <div style={{ display: 'flex', gap: 6, marginBottom: 13 }}>
+          {TILES.map((t) => {
+            const active = tab === t.key
+            return (
+              <button key={t.key} onClick={() => setTab(t.key)}
+                style={{ flex: '1 1 0', minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  background: active ? 'var(--fc-indigo-tint)' : '#fff', cursor: 'pointer',
+                  border: active ? '1.5px solid var(--fc-indigo)' : '0.5px solid rgba(20,20,43,0.14)',
+                  borderRadius: 12, padding: '10px 3px' }}>
+                <Icon name={t.icon} size={19} color={active ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
+                <span style={{ fontSize: 9.5, fontWeight: active ? 700 : 500, lineHeight: 1.15, textAlign: 'center',
+                  color: active ? 'var(--fc-indigo)' : 'var(--fc-ink)' }}>{t.label}</span>
+              </button>
+            )
+          })}
+        </div>
 
         {tab === 'schedule' && b.sessions.map((s) => (
           <div key={s.id} id={`sess-${s.id}`}
@@ -136,6 +157,106 @@ export function ProgramDetailScreen({ bookingId, focusSessionId }: { bookingId: 
             </div>
           </>
         )}
+
+        {tab === 'assessment' && (
+          <>
+            <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginBottom: 11, lineHeight: 1.5 }}>
+              Monthly posture check — your coach compares before / after photos to track correction.
+            </div>
+            {assessments.map((a) => (
+              <div key={a.id} style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 11 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
+                  <span className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>{a.label}</span>
+                  <span style={{ fontSize: 10.5, color: 'var(--fc-muted)' }}>{a.date}</span>
+                </div>
+                <div style={{ display: 'flex', gap: 9 }}>
+                  {[{ label: 'Before', has: a.hasBefore }, { label: 'After', has: a.hasAfter }].map((ph) => (
+                    <div key={ph.label} style={{ flex: 1 }}>
+                      <div style={{ aspectRatio: '3 / 4', borderRadius: 11, display: 'flex', flexDirection: 'column',
+                        alignItems: 'center', justifyContent: 'center', gap: 5,
+                        background: ph.has ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)',
+                        border: ph.has ? 'none' : '1px dashed rgba(20,20,43,0.22)' }}>
+                        <Icon name={ph.has ? 'user-scan' : 'camera-plus'} size={26} color={ph.has ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
+                        <span style={{ fontSize: 10, fontWeight: 600, color: ph.has ? 'var(--fc-indigo)' : 'var(--fc-muted)' }}>
+                          {ph.has ? ph.label : `Add ${ph.label.toLowerCase()}`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--fc-ink)', lineHeight: 1.5, marginTop: 9 }}>{a.note}</div>
+              </div>
+            ))}
+            <button style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%',
+              background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 12, padding: 12, fontSize: 13, fontWeight: 600 }}>
+              <Icon name="camera-plus" size={16} color="#fff" /> Add this month’s photos
+            </button>
+          </>
+        )}
+
+        {tab === 'meallog' && (() => {
+          const st = mealLogStats()
+          return (
+          <>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              {[{ v: st.days, l: 'days logged' }, { v: `${st.avg}`, l: 'avg kcal' }, { v: st.notes, l: 'coach notes' }].map((x) => (
+                <div key={x.l} style={{ flex: 1, background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 12, padding: '10px 6px', textAlign: 'center' }}>
+                  <div className="fc-display fc-tabnum" style={{ fontSize: 17, fontWeight: 700, color: 'var(--fc-indigo)' }}>{x.v}</div>
+                  <div style={{ fontSize: 9.5, color: 'var(--fc-muted)' }}>{x.l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginBottom: 11, lineHeight: 1.5 }}>
+              Every meal logged through this program, day by day. Your coach reviews each day and leaves a note.
+            </div>
+            {mealLog.map((d) => (
+              <div key={d.id} style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 11 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 }}>
+                  <span className="fc-display" style={{ fontSize: 12.5, fontWeight: 700 }}>Day {d.dayNum} · {d.date}</span>
+                  <span className="fc-tabnum" style={{ fontSize: 11, color: d.total > d.target ? '#E24B4A' : 'var(--fc-muted)' }}>{d.total} / {d.target} kcal</span>
+                </div>
+                {d.sessionTitle && (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 9.5, fontWeight: 600, color: 'var(--fc-indigo)',
+                    background: 'var(--fc-indigo-tint)', borderRadius: 999, padding: '2px 8px', marginBottom: 8 }}>
+                    <Icon name="barbell" size={11} color="var(--fc-indigo)" /> {d.sessionTitle} session
+                  </div>
+                )}
+                <div style={{ marginTop: d.sessionTitle ? 0 : 6 }}>
+                  {d.meals.map((m, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingTop: 7,
+                      borderTop: i === 0 ? 'none' : '0.5px solid rgba(20,20,43,0.07)', marginTop: i === 0 ? 0 : 7 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 12 }}>
+                          <span style={{ color: 'var(--fc-muted)' }}>{m.type} · </span><span style={{ fontWeight: 600 }}>{m.name}</span>
+                        </div>
+                        {m.comment && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10.5, color: 'var(--fc-indigo)', marginTop: 2 }}>
+                            <Icon name="message-circle" size={11} color="var(--fc-indigo)" /> {m.comment}
+                          </div>
+                        )}
+                      </div>
+                      <span className="fc-tabnum" style={{ fontSize: 11.5, fontWeight: 600 }}>{m.cal}</span>
+                    </div>
+                  ))}
+                </div>
+                {d.trainerComment ? (
+                  <div style={{ display: 'flex', gap: 7, alignItems: 'flex-start', background: 'var(--fc-indigo-tint)', borderRadius: 10, padding: '8px 10px', marginTop: 9 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--fc-indigo)', color: '#fff', flex: '0 0 auto',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 8.5, fontWeight: 700 }}>AR</div>
+                    <div style={{ fontSize: 11, color: 'var(--fc-ink)', lineHeight: 1.45 }}>
+                      <b style={{ color: 'var(--fc-indigo)', fontWeight: 700 }}>Coach Aanand</b> · {d.trainerComment}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 10.5, color: 'var(--fc-muted)', marginTop: 9 }}>
+                    <Icon name="clock" size={12} color="var(--fc-muted)" /> Awaiting coach’s note
+                  </div>
+                )}
+              </div>
+            ))}
+          </>
+          )
+        })()}
       </div>
 
       <div style={{ padding: '10px 13px', background: '#fff', borderTop: '0.5px solid rgba(20,20,43,0.10)' }}>

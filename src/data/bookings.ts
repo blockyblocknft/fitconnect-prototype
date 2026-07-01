@@ -31,7 +31,7 @@ export const bookings: Booking[] = [
     ],
   },
   {
-    id: 'b2', programName: 'Daily mobility flow', trainerName: 'Sara M.', status: 'awaiting',
+    id: 'b2', programName: 'Daily mobility flow', trainerName: 'Aanand R.', status: 'awaiting',
     kind: 'group', mode: 'online', discipline: 'mobility', progressKind: 'days', current: 9, total: 30,
     meetLink: 'https://meet.google.com/xyz-mnop-qrs',
     sessions: [

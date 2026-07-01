@@ -1,93 +1,116 @@
 import { useState } from 'react'
-import type { SessionType, Trainer, Discipline } from '../lib/types'
+import type { SessionType, Discipline, TrainingMode } from '../lib/types'
 import { trainers } from '../data/trainers'
+import { discOfCategory, addSingleBooking } from '../data/bookings'
 import { FOCUS_CATEGORIES } from '../data/disciplines'
+import { groupClasses, type GroupClass, type GroupSlot } from '../data/groupClasses'
+import { useNav } from '../nav/NavContext'
 import { SegmentedToggle } from '../components/SegmentedToggle'
-import { GroupShowtimes } from '../components/GroupShowtimes'
-import { TrainerCard } from '../components/cards/TrainerCard'
+import { OfferingCard, type Offering } from '../components/cards/OfferingCard'
+import { GroupBookModal } from '../components/GroupBookModal'
+import { RequestSessionModal } from '../components/RequestSessionModal'
+import { CapacityBar } from '../components/CapacityBar'
+import { initials } from '../data/profile'
 import { Icon } from '../components/Icon'
+import { RatingPill } from '../components/RatingPill'
 
-type Sort = 'relevance' | 'rating' | 'priceLow' | 'priceHigh' | 'nearest'
-const SORTS: { key: Sort; label: string }[] = [
-  { key: 'relevance', label: 'Relevance' },
-  { key: 'rating', label: 'Top rated' },
-  { key: 'priceLow', label: 'Price: low to high' },
-  { key: 'priceHigh', label: 'Price: high to low' },
-  { key: 'nearest', label: 'Nearest' },
-]
-
-// "What's on your mind" style category strip — large icon tiles.
 const CATEGORIES = FOCUS_CATEGORIES
-
-const MODES: { key: 'online' | 'outdoor'; label: string; icon: string; accent: string }[] = [
+const MODES: { key: TrainingMode; label: string; icon: string; accent: string }[] = [
   { key: 'online', label: 'Online', icon: 'world', accent: 'var(--fc-green)' },
   { key: 'outdoor', label: 'Outdoor', icon: 'tree', accent: '#E24B4A' },
 ]
-type ModeFilter = 'all' | 'online' | 'outdoor'
 
-const priceNum = (t: Trainer) => Number(t.fromPriceLabel.replace(/[^\d]/g, '')) || 0
-const distNum = (t: Trainer) => (t.location.kind === 'local' ? t.location.km : Infinity)
-
+// One coach, many clients. The two real axes a client picks are 1:1 vs Group
+// and Online vs Outdoor; the focus icons narrow by discipline. The page opens
+// straight onto the coach profile + their matching offerings — no roster, no
+// search. (Trial / Daily / Weekly are just badges on the 1:1 cards.)
 export function SessionsScreen() {
+  const nav = useNav()
   const [kind, setKind] = useState<SessionType>('1to1')
-  const [sort, setSort] = useState<Sort>('relevance')
-  const [sortOpen, setSortOpen] = useState(false)
-  const [modeFilter, setModeFilter] = useState<ModeFilter>('all')
+  const [mode, setMode] = useState<TrainingMode | 'all'>('all')
   const [disc, setDisc] = useState<Discipline | null>(null)
-  const [topRated, setTopRated] = useState(false)
-  const [nearMe, setNearMe] = useState(false)
+  const [pending, setPending] = useState<{ cls: GroupClass; slot: GroupSlot } | null>(null)
+  const [customReq, setCustomReq] = useState(false)
+  const [reqSent, setReqSent] = useState(false)
+  const coach = trainers[0]
 
-  // Distance options apply to outdoor + all (located trainers); only online has no distance.
-  const nearAvailable = modeFilter !== 'online'
-  const chooseMode = (next: ModeFilter) => {
-    setModeFilter(next)
-    if (next === 'online') {
-      setNearMe(false)
-      setSort((s) => (s === 'nearest' ? 'relevance' : s))
-    }
-  }
-  const sorts = nearAvailable ? SORTS : SORTS.filter((s) => s.key !== 'nearest')
+  const focusOk = (d: Discipline | null) => !disc || d === disc
 
-  let list = trainers.filter((t) => t.type.includes(kind))
-  if (modeFilter !== 'all') list = list.filter((t) => t.modes.includes(modeFilter))
-  if (disc) list = list.filter((t) => t.disciplines.includes(disc))
-  if (topRated) list = list.filter((t) => t.rating >= 4.8)
-  if (nearMe) list = list.filter((t) => distNum(t) <= 3)
+  // 1:1 — trial + programs, filtered by delivery mode + focus.
+  const trial: Offering = { id: 'trial', kind: 'trial', name: '1-day trial', sub: 'Full session, any focus', price: coach.trial.priceLabel }
+  const programOfferings: Offering[] = coach.programs
+    .filter((p) => (mode === 'all' || p.modes.includes(mode)) && focusOk(discOfCategory(p.category)))
+    .map((p) => ({ id: p.id, kind: p.cadence === 'daily' ? 'daily' : 'weekly',
+      name: p.name, sub: p.scheduleLabel, price: p.priceLabel, programId: p.id, bestseller: p.bestseller }))
+  const oneToOne: Offering[] = [...(disc ? [] : [trial]), ...programOfferings]
 
-  const sorted = [...list].sort((a, b) => {
-    if (sort === 'rating') return b.rating - a.rating
-    if (sort === 'priceLow') return priceNum(a) - priceNum(b)
-    if (sort === 'priceHigh') return priceNum(b) - priceNum(a)
-    if (sort === 'nearest') return distNum(a) - distNum(b)
-    return 0
-  })
+  // Group — classes, filtered by online/outdoor mode + focus.
+  const groups = groupClasses.filter((c) =>
+    (mode === 'all' || (mode === 'online' ? c.mode === 'online' : c.mode === 'inperson')) && focusOk(c.discipline))
 
-  const chip = (label: string, active: boolean, onClick: () => void) => (
-    <button key={label} onClick={onClick}
-      style={{ flex: '0 0 auto', border: 'none', borderRadius: 999, padding: '7px 13px', fontSize: 12, fontWeight: 600,
-        whiteSpace: 'nowrap', background: active ? 'var(--fc-indigo)' : '#fff', color: active ? '#fff' : 'var(--fc-muted)',
-        boxShadow: active ? 'none' : 'inset 0 0 0 0.5px rgba(20,20,43,0.16)' }}>{label}</button>
-  )
-  const sortLabel = SORTS.find((s) => s.key === sort)!.label
+  const list = kind === '1to1' ? oneToOne : groups
+  const empty = list.length === 0
 
   return (
     <div style={{ padding: '12px 14px', background: 'var(--fc-surface)', flex: 1 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#fff',
-        border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 11, padding: '9px 11px', marginBottom: 12 }}>
-        <Icon name="search" size={16} color="var(--fc-muted)" />
-        <span style={{ fontSize: 12, color: '#A0A0A8' }}>Search trainers, programs</span>
+      {/* Coach profile — first thing: a self-intro, not a rating card */}
+      <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 13, marginBottom: 12 }}>
+        <div style={{ display: 'flex', gap: 11, alignItems: 'center' }}>
+          <div style={{ width: 52, height: 52, borderRadius: 13, flex: '0 0 auto', background: 'var(--fc-indigo-tint)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="user" size={27} color="var(--fc-indigo)" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span className="fc-display" style={{ fontSize: 15, fontWeight: 700 }}>{coach.name}</span>
+              <Icon name="rosette-discount-check" size={14} color="var(--fc-indigo)" />
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--fc-muted)', marginTop: 1 }}>{coach.specialty} · {coach.years} yrs</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+              <RatingPill rating={coach.rating} />
+              <span style={{ fontSize: 10.5, color: 'var(--fc-muted)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                <Icon name="map-pin" size={11} color="var(--fc-muted)" />
+                {coach.location.kind === 'local' ? coach.location.area : 'Online'} · online & outdoor
+              </span>
+            </div>
+          </div>
+        </div>
+        {coach.bio && <p style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--fc-ink)', margin: '11px 0 0' }}>{coach.bio}</p>}
+        <button onClick={() => { setReqSent(false); setCustomReq(true) }}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', marginTop: 11,
+            background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)', border: 'none', borderRadius: 11,
+            padding: '10px 12px', fontSize: 12.5, fontWeight: 600 }}>
+          <Icon name="calendar-plus" size={15} color="var(--fc-indigo)" /> Request a custom session
+        </button>
+        {reqSent && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--fc-rating-green)',
+            fontWeight: 600, marginTop: 8 }}>
+            <Icon name="circle-check" size={14} color="var(--fc-rating-green)" /> Request sent — {coach.name} will confirm in Booked › Requests.
+          </div>
+        )}
       </div>
 
+      {/* Primary axes: 1:1 vs Group, and Online vs Outdoor */}
       <SegmentedToggle options={[{ value: '1to1', label: '1-to-1' }, { value: 'group', label: 'Group' }]}
         value={kind} onChange={setKind} />
+      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, margin: '11px 0 4px' }}>
+        {MODES.map((m) => {
+          const on = mode === m.key
+          return (
+            <button key={m.key} onClick={() => setMode(on ? 'all' : m.key)}
+              style={{ display: 'flex', alignItems: 'center', gap: 5, borderRadius: 999, padding: '7px 16px', fontSize: 12, fontWeight: 600,
+                border: on ? `1.5px solid ${m.accent}` : '0.5px solid rgba(20,20,43,0.16)',
+                background: on ? '#fff' : '#fff', color: on ? m.accent : 'var(--fc-muted)',
+                boxShadow: on ? '0 1px 2px rgba(20,20,43,0.12)' : 'none' }}>
+              <Icon name={m.icon} size={14} color={on ? m.accent : 'var(--fc-muted)'} /> {m.label}
+            </button>
+          )
+        })}
+      </div>
 
-      {kind === 'group' ? (
-        <div style={{ marginTop: 14 }}><GroupShowtimes /></div>
-      ) : (
-        <>
-      {/* Workout-type categories — large icon tiles */}
+      {/* Browse by focus — large icon tiles */}
       <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--fc-muted)', margin: '14px 0 8px' }}>Browse by focus</div>
-      <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 2, marginBottom: 6 }}>
+      <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 2, marginBottom: 13 }}>
         {CATEGORIES.map((c) => {
           const active = c.key === 'all' ? disc === null : disc === c.key
           const accent = active ? 'var(--fc-coral)' : 'var(--fc-indigo)'
@@ -106,64 +129,57 @@ export function SessionsScreen() {
         })}
       </div>
 
-      {/* Sort + online/outdoor toggle */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 9, margin: '8px 0 10px' }}>
-        <div style={{ position: 'relative', flex: '0 0 auto' }}>
-          <button aria-label="Sort by" onClick={() => setSortOpen((o) => !o)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6, background: sort === 'relevance' ? '#fff' : 'var(--fc-indigo-tint)',
-              border: sort === 'relevance' ? '0.5px solid rgba(20,20,43,0.18)' : '0.5px solid var(--fc-indigo)',
-              color: sort === 'relevance' ? '#55555f' : 'var(--fc-indigo)', borderRadius: 999, padding: '7px 13px',
-              fontSize: 12, fontWeight: 600 }}>
-            <Icon name="arrows-sort" size={14} color={sort === 'relevance' ? '#55555f' : 'var(--fc-indigo)'} />
-            {sort === 'relevance' ? 'Sort by' : sortLabel}
-            <Icon name="chevron-down" size={13} color={sort === 'relevance' ? '#55555f' : 'var(--fc-indigo)'} />
-          </button>
-          {sortOpen && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: 6, zIndex: 20, background: '#fff',
-              border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 12, padding: 5, minWidth: 190,
-              boxShadow: '0 8px 24px rgba(20,20,43,0.14)' }}>
-              {sorts.map((s) => {
-                const active = sort === s.key
-                return (
-                  <button key={s.key} onClick={() => { setSort(s.key); setSortOpen(false) }}
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%',
-                      background: active ? 'var(--fc-indigo-tint)' : 'transparent', border: 'none', borderRadius: 8,
-                      padding: '9px 11px', fontSize: 12, fontWeight: active ? 600 : 400,
-                      color: active ? 'var(--fc-indigo)' : 'var(--fc-ink)' }}>
-                    {s.label}{active && <Icon name="check" size={14} color="var(--fc-indigo)" />}
-                  </button>
-                )
-              })}
+      {empty && (
+        <div style={{ fontSize: 12, color: 'var(--fc-muted)', textAlign: 'center', padding: 20 }}>Nothing matches these filters yet.</div>
+      )}
+
+      {kind === '1to1' && oneToOne.map((o) => <OfferingCard key={o.id} offering={o} trainerName={coach.name} />)}
+
+      {kind === 'group' && groups.map((cls) => (
+        <div key={cls.id} style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 10 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 9 }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--fc-coral)', color: '#fff', flex: '0 0 auto',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11 }}>{initials(cls.trainerName)}</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>{cls.title}</div>
+              <div style={{ fontSize: 10.5, color: 'var(--fc-muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
+                <Icon name={cls.mode === 'online' ? 'video' : 'map-pin'} size={12} color="var(--fc-muted)" />{cls.place}
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Online / Outdoor — named segmented toggle, both labels always shown */}
-        <div style={{ display: 'inline-flex', background: 'var(--fc-surface)', borderRadius: 999, padding: 3, flex: '0 0 auto' }}>
-          {MODES.map((m) => {
-            const on = modeFilter === m.key
-            return (
-              <button key={m.key} onClick={() => chooseMode(on ? 'all' : m.key)}
-                style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', borderRadius: 999, padding: '6px 11px',
-                  fontSize: 11, fontWeight: 600, background: on ? '#fff' : 'transparent', color: on ? m.accent : 'var(--fc-muted)',
-                  boxShadow: on ? '0 1px 2px rgba(20,20,43,0.14)' : 'none' }}>
-                <Icon name={m.icon} size={13} color={on ? m.accent : 'var(--fc-muted)'} /> {m.label}
+            <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--fc-indigo)', background: 'var(--fc-indigo-tint)', padding: '2px 7px', borderRadius: 999 }}>Group</span>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {cls.slots.map((slot) => (
+              <button key={slot.time} onClick={() => setPending({ cls, slot })}
+                style={{ border: '1.5px solid var(--fc-green)', borderRadius: 8, padding: '7px 11px', background: '#fff',
+                  textAlign: 'center', cursor: 'pointer', minWidth: 84 }}>
+                <div className="fc-display" style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--fc-rating-green)' }}>{slot.time}</div>
+                <div style={{ fontSize: 8.5, color: 'var(--fc-muted)', marginTop: 1 }}>{slot.format}</div>
               </button>
-            )
-          })}
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 10 }}>
+            <div style={{ flex: 1 }}><CapacityBar taken={cls.spotsTaken} max={cls.spotsMax} /></div>
+            <span className="fc-display" style={{ fontSize: 12, fontWeight: 700 }}>{cls.price}</span>
+          </div>
         </div>
-      </div>
+      ))}
 
-      {/* Quick filter chips */}
-      <div style={{ display: 'flex', gap: 7, overflowX: 'auto', marginBottom: 13, paddingBottom: 1 }}>
-        {chip('Top rated', topRated, () => setTopRated((v) => !v))}
-        {nearAvailable && chip('Near me', nearMe, () => setNearMe((v) => !v))}
-      </div>
+      {pending && (
+        <GroupBookModal cls={pending.cls} slot={pending.slot} dateLabel="Next class"
+          onClose={() => setPending(null)}
+          onConfirm={() => {
+            addSingleBooking(pending.cls.title, pending.cls.trainerName,
+              { dayOffset: 0, dateLabel: 'Next class', timeLabel: pending.slot.time }, 'group', pending.cls.mode, pending.cls.discipline)
+            setPending(null)
+            nav.push({ name: 'bookingConfirm' })
+          }} />
+      )}
 
-      {sorted.length === 0
-        ? <div style={{ fontSize: 12, color: 'var(--fc-muted)', textAlign: 'center', padding: 20 }}>No trainers match these filters.</div>
-        : sorted.map((t) => <TrainerCard key={t.id} trainer={t} mode={kind} />)}
-        </>
+      {customReq && (
+        <RequestSessionModal trainerName={coach.name}
+          onClose={() => setCustomReq(false)}
+          onSubmit={() => { setCustomReq(false); setReqSent(true) }} />
       )}
     </div>
   )

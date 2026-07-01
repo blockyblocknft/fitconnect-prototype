@@ -3,6 +3,7 @@ import type { NutritionStatus } from '../../data/trainerView'
 import { STATUS_LABEL, type CoachPost } from '../../data/trainerView'
 import { coachPrograms, type CoachClient, type CoachSession } from '../../data/coach'
 import { mealDay } from '../../data/meal'
+import { mealLogFor, setDayComment } from '../../data/progress'
 import { SegmentedToggle } from '../../components/SegmentedToggle'
 import { Icon } from '../../components/Icon'
 
@@ -25,11 +26,12 @@ export function TrainerCoachScreen() {
   const [tab, setTab] = useState<Tab>('nutrition')
   const [query, setQuery] = useState('')
   const [attn, setAttn] = useState(false)
+  const [kindFilter, setKindFilter] = useState<'all' | '1to1' | 'group'>('all')
+  const [modeFilter, setModeFilter] = useState<'all' | 'online' | 'outdoor'>('all')
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
   // nutrition
   const [openId, setOpenId] = useState<string | null>(null)
   const [nudged, setNudged] = useState<Record<string, boolean>>({})
-  const [comments, setComments] = useState<Record<string, string>>({})
   const [mealDrafts, setMealDrafts] = useState<Record<string, string>>({})
   const [, force] = useState(0)
   // q/a
@@ -60,19 +62,48 @@ export function TrainerCoachScreen() {
         <span style={{ fontSize: 10, color: 'var(--fc-muted)' }}>{label}</span>
       </div>
     )
+    const visible = coachPrograms.filter((p) =>
+      (kindFilter === 'all' || p.kind === kindFilter) && (modeFilter === 'all' || p.mode === modeFilter))
+    const KIND_OPTS: { key: 'all' | '1to1' | 'group'; label: string }[] = [
+      { key: 'all', label: 'All' }, { key: '1to1', label: '1:1' }, { key: 'group', label: 'Group' }]
+    const MODE_OPTS: { key: 'all' | 'online' | 'outdoor'; label: string }[] = [
+      { key: 'all', label: 'All' }, { key: 'online', label: 'Online' }, { key: 'outdoor', label: 'Outdoor' }]
+    const seg = <T extends string>(opts: { key: T; label: string }[], val: T, set: (v: T) => void) => (
+      <div style={{ display: 'inline-flex', background: '#fff', border: '0.5px solid rgba(20,20,43,0.14)', borderRadius: 999, padding: 3 }}>
+        {opts.map((o) => {
+          const on = val === o.key
+          return (
+            <button key={o.key} onClick={() => set(o.key)}
+              style={{ border: 'none', borderRadius: 999, padding: '5px 12px', fontSize: 11, fontWeight: 600, cursor: 'pointer',
+                background: on ? 'var(--fc-indigo)' : 'transparent', color: on ? '#fff' : 'var(--fc-muted)' }}>{o.label}</button>
+          )
+        })}
+      </div>
+    )
     return (
       <div style={{ padding: 13, background: 'var(--fc-surface)', flex: 1, overflowY: 'auto' }}>
         <div className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>Your programs</div>
-        <div style={{ fontSize: 11, color: 'var(--fc-muted)', margin: '2px 0 12px' }}>Tap a program to coach its nutrition, Q/A &amp; community.</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          {coachPrograms.map((p) => {
+        <div style={{ fontSize: 11, color: 'var(--fc-muted)', margin: '2px 0 11px' }}>Tap a program to coach its nutrition, Q/A &amp; community.</div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 13 }}>
+          {seg(KIND_OPTS, kindFilter, setKindFilter)}
+          {seg(MODE_OPTS, modeFilter, setModeFilter)}
+        </div>
+        {visible.length === 0
+          ? <div style={{ fontSize: 12, color: 'var(--fc-muted)', textAlign: 'center', padding: 24 }}>No programs match this filter.</div>
+          : <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          {visible.map((p) => {
             const clients = p.sessions.flatMap((s) => s.clients)
             const needNudge = clients.filter(behind).length
             const pendingQ = p.sessions.flatMap((s) => s.questions).filter((x) => !x.answered).length
             return (
               <button key={p.id} onClick={() => { setProgId(p.id); setMode('detail') }}
                 style={{ textAlign: 'left', background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 16, padding: 13, cursor: 'pointer' }}>
-                <div className="fc-display" style={{ fontSize: 13, fontWeight: 700, minHeight: 34, lineHeight: 1.25 }}>{p.name}</div>
+                <div className="fc-display" style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.25 }}>{p.name}</div>
+                <div style={{ display: 'flex', gap: 5, margin: '5px 0 2px' }}>
+                  <span style={{ fontSize: 8.5, fontWeight: 700, color: 'var(--fc-indigo)', background: 'var(--fc-indigo-tint)', padding: '2px 7px', borderRadius: 999 }}>{p.kind === '1to1' ? '1:1' : 'Group'}</span>
+                  <span style={{ fontSize: 8.5, fontWeight: 700, color: p.mode === 'online' ? 'var(--fc-green)' : '#C2410C',
+                    background: p.mode === 'online' ? '#E4F3EA' : '#FBE9DD', padding: '2px 7px', borderRadius: 999 }}>{p.mode === 'online' ? 'Online' : 'Outdoor'}</span>
+                </div>
                 {tileRow('users-group', 'clients', clients.length)}
                 {tileRow('bell', 'need a nudge', needNudge, 'var(--fc-coral)')}
                 {tileRow('help-circle', 'pending Q', pendingQ, '#854F0B')}
@@ -80,7 +111,7 @@ export function TrainerCoachScreen() {
               </button>
             )
           })}
-        </div>
+        </div>}
       </div>
     )
   }
@@ -193,41 +224,48 @@ export function TrainerCoachScreen() {
                     <div style={{ height: 5, borderRadius: 999, background: 'var(--fc-surface)', overflow: 'hidden', marginTop: 8 }}>
                       <div style={{ width: `${pct}%`, height: '100%', background: status === 'over' ? '#E24B4A' : 'var(--fc-green)' }} />
                     </div>
-                    {expanded && (
-                      <div style={{ marginTop: 10, borderTop: '0.5px solid rgba(20,20,43,0.08)', paddingTop: 9 }}>
-                        {rawMeals.length === 0
-                          ? <div style={{ fontSize: 11, color: 'var(--fc-muted)' }}>No meals logged today — a nudge may help.</div>
-                          : rawMeals.map((meal, i) => {
-                            const key = `${c.id}:${i}`
-                            const posted = c.live ? meal.trainerComment : (comments[key] ?? meal.comment)
-                            const send = () => {
-                              const t = (mealDrafts[key] ?? '').trim()
-                              if (!t) return
-                              if (c.live) { mealDay.meals[i].trainerComment = t; force((n) => n + 1) }
-                              else setComments((cm) => ({ ...cm, [key]: t }))
-                              setMealDrafts((d) => ({ ...d, [key]: '' }))
-                            }
-                            return (
-                              <div key={i} style={{ marginBottom: 8 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                  <span style={{ fontSize: 11.5, fontWeight: 600 }}>{meal.type} · {meal.name}</span>
-                                  <span className="fc-tabnum" style={{ fontSize: 10.5, color: 'var(--fc-muted)' }}>{meal.cal} kcal</span>
+                    {expanded && (() => {
+                      const log = mealLogFor(c.name)
+                      const noted = log.filter((d) => d.trainerComment).length
+                      return (
+                        <div style={{ marginTop: 10, borderTop: '0.5px solid rgba(20,20,43,0.08)', paddingTop: 9 }}>
+                          <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 8 }}>
+                            DAILY MEAL LOG · 30 DAYS · {noted} notes — leave a note per day
+                          </div>
+                          <div style={{ maxHeight: 300, overflowY: 'auto', paddingRight: 2 }}>
+                            {log.map((day) => {
+                              const key = `${c.id}:${day.id}`
+                              const send = () => {
+                                const t = (mealDrafts[key] ?? '').trim()
+                                if (!t) return
+                                setDayComment(c.name, day.id, t); setMealDrafts((d) => ({ ...d, [key]: '' })); force((n) => n + 1)
+                              }
+                              return (
+                                <div key={day.id} style={{ paddingBottom: 9, marginBottom: 9, borderBottom: '0.5px solid rgba(20,20,43,0.07)' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: 11.5, fontWeight: 600 }}>
+                                      Day {day.dayNum} · {day.date}{day.sessionTitle ? <span style={{ color: 'var(--fc-indigo)' }}> · {day.sessionTitle}</span> : ''}
+                                    </span>
+                                    <span className="fc-tabnum" style={{ fontSize: 10.5, color: day.total > day.target ? '#E24B4A' : 'var(--fc-muted)' }}>{day.total}/{day.target}</span>
+                                  </div>
+                                  <div style={{ fontSize: 10, color: 'var(--fc-muted)', marginTop: 2 }}>{day.meals.map((m) => m.name).join(' · ')}</div>
+                                  {day.trainerComment && <div style={{ fontSize: 10.5, color: 'var(--fc-indigo)', marginTop: 4 }}><b style={{ fontWeight: 600 }}>You:</b> {day.trainerComment}</div>}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--fc-surface)', borderRadius: 9, padding: '4px 9px', marginTop: 5 }}>
+                                    <Icon name="message-dots" size={12} color="var(--fc-muted)" />
+                                    <input value={mealDrafts[key] ?? ''} onChange={(e) => setMealDrafts((d) => ({ ...d, [key]: e.target.value }))}
+                                      onKeyDown={(e) => { if (e.key === 'Enter') send() }} placeholder={day.trainerComment ? 'Edit day note…' : 'Add a note for this day…'}
+                                      style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 10.5, fontFamily: 'var(--fc-font-body)', padding: '3px 0' }} />
+                                    <button onClick={send} aria-label="Send day note" style={{ background: 'transparent', border: 'none', display: 'flex' }}>
+                                      <Icon name="send" size={13} color="var(--fc-indigo)" />
+                                    </button>
+                                  </div>
                                 </div>
-                                {posted && <div style={{ fontSize: 10.5, color: 'var(--fc-indigo)', marginTop: 2 }}><b style={{ fontWeight: 600 }}>You:</b> {posted}</div>}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 7, background: 'var(--fc-surface)', borderRadius: 9, padding: '4px 9px', marginTop: 5 }}>
-                                  <Icon name="message-dots" size={12} color="var(--fc-muted)" />
-                                  <input value={mealDrafts[key] ?? ''} onChange={(e) => setMealDrafts((d) => ({ ...d, [key]: e.target.value }))}
-                                    onKeyDown={(e) => { if (e.key === 'Enter') send() }} placeholder={posted ? 'Edit comment…' : 'Add a comment…'}
-                                    style={{ flex: 1, border: 'none', background: 'transparent', outline: 'none', fontSize: 10.5, fontFamily: 'var(--fc-font-body)', padding: '3px 0' }} />
-                                  <button onClick={send} aria-label="Send comment" style={{ background: 'transparent', border: 'none', display: 'flex' }}>
-                                    <Icon name="send" size={13} color="var(--fc-indigo)" />
-                                  </button>
-                                </div>
-                              </div>
-                            )
-                          })}
-                      </div>
-                    )}
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })()}
                   </div>
                 )
               })}

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { getTrainerSession, addClientToSession, type Attendance } from '../../data/trainerView'
+import { markClientAttendance } from '../../data/clients'
 import { BookClientModal } from '../../components/trainer/BookClientModal'
 import { Icon } from '../../components/Icon'
 
@@ -42,7 +43,11 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
 
         {session.clients.map((c) => {
           const mark = marks[c.id]
-          const set = (a: Attendance) => setMarks((m) => ({ ...m, [c.id]: a }))
+          const set = (a: Attendance) => {
+            setMarks((m) => ({ ...m, [c.id]: a }))
+            c.attendance = a // persist on the session roster (Today reads this)
+            if (a === 'attended' || a === 'noshow') markClientAttendance(c.name, session.title, a)
+          }
           const pill = (a: Attendance, label: string, on: string) => (
             <button onClick={() => set(a)} style={{ border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 11, fontWeight: 600,
               background: mark === a ? on : 'var(--fc-surface)', color: mark === a ? '#fff' : 'var(--fc-muted)' }}>{label}</button>

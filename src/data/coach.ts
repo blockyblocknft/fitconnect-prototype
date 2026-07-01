@@ -1,3 +1,4 @@
+import type { SessionType, TrainingMode } from '../lib/types'
 import type { NutritionStatus, ClientMeal, CoachPost } from './trainerView'
 
 // Coach hub organised the way a trainer actually works: by program, then by each
@@ -8,7 +9,7 @@ import type { NutritionStatus, ClientMeal, CoachPost } from './trainerView'
 export interface CoachClient { id: string; name: string; initials: string; status: NutritionStatus; calories: number; goal: number; meals: ClientMeal[]; live?: boolean }
 export interface CoachQ { id: string; client: string; initials: string; question: string; answered: boolean }
 export interface CoachSession { id: string; title: string; time: string; clients: CoachClient[]; questions: CoachQ[] }
-export interface CoachProgram { id: string; name: string; sessions: CoachSession[]; community: CoachPost[] }
+export interface CoachProgram { id: string; name: string; kind: SessionType; mode: TrainingMode; sessions: CoachSession[]; community: CoachPost[] }
 
 let _n = 0
 const c = (name: string, initials: string, status: NutritionStatus, calories: number, goal: number, meals: ClientMeal[] = []): CoachClient =>
@@ -16,7 +17,7 @@ const c = (name: string, initials: string, status: NutritionStatus, calories: nu
 
 export const coachPrograms: CoachProgram[] = [
   {
-    id: 'hiit', name: 'HIIT Bootcamp',
+    id: 'hiit', name: 'HIIT Bootcamp', kind: 'group', mode: 'outdoor',
     sessions: [
       { id: 'hiit-m', title: 'Morning HIIT', time: 'Today · 6:00 AM',
         clients: [
@@ -52,7 +53,7 @@ export const coachPrograms: CoachProgram[] = [
     ],
   },
   {
-    id: '1to1', name: '1:1 Coaching',
+    id: '1to1', name: '1:1 Coaching', kind: '1to1', mode: 'outdoor',
     sessions: [
       { id: '1to1-prabu', title: '1:1 Strength · Prabu', time: 'Today · 6:00 PM',
         clients: [{ ...c('Prabu S.', 'PS', 'ontrack', 1450, 1800, []), live: true }],
@@ -61,7 +62,7 @@ export const coachPrograms: CoachProgram[] = [
     community: [{ id: 'c-1to1-1', author: 'You', initials: 'AR', coach: true, text: 'Prabu — your progress pics are looking great this week.' }],
   },
   {
-    id: 'yoga', name: 'Yoga Flow',
+    id: 'yoga', name: 'Yoga Flow', kind: 'group', mode: 'online',
     sessions: [
       { id: 'yoga-power', title: 'Power Yoga', time: 'Today · 6:30 PM',
         clients: [

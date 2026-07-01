@@ -10,10 +10,10 @@ const CLIENT_TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: 'fittii', label: 'Fittii', icon: 'message-2' },
 ]
 const TRAINER_TABS: { key: TabKey; label: string; icon: string }[] = [
-  { key: 'trHours', label: 'Work hours', icon: 'clock' },
-  { key: 'trSessions', label: 'Create session', icon: 'circle-plus' },
-  { key: 'trToday', label: 'Requests', icon: 'inbox' },
+  { key: 'trToday', label: 'Today', icon: 'home' },
+  { key: 'trClients', label: 'Clients', icon: 'users-group' },
   { key: 'trCalendar', label: 'Calendar', icon: 'calendar' },
+  { key: 'trSessions', label: 'Create session', icon: 'circle-plus' },
   { key: 'trCoach', label: 'Coach', icon: 'school' },
   { key: 'fittii', label: 'Fittii', icon: 'message-2' },
 ]

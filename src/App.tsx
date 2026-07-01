@@ -22,13 +22,17 @@ import { TrainerRosterScreen } from './screens/trainer/TrainerRosterScreen'
 import { TrainerCoachScreen } from './screens/trainer/TrainerCoachScreen'
 import { TrainerCalendarScreen } from './screens/trainer/TrainerCalendarScreen'
 import { TrainerHoursScreen } from './screens/trainer/TrainerHoursScreen'
+import { TrainerClientsScreen } from './screens/trainer/TrainerClientsScreen'
+import { TrainerClientProfileScreen } from './screens/trainer/TrainerClientProfileScreen'
+import { TrainerPaymentsScreen } from './screens/trainer/TrainerPaymentsScreen'
 
-const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal', 'fittii', 'trToday', 'trSessions', 'trCoach', 'trCalendar', 'trHours'])
+const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal', 'fittii', 'trToday', 'trSessions', 'trCoach', 'trCalendar', 'trHours', 'trClients'])
 const TITLES: Record<string, string> = {
   sessions: 'Book sessions', events: 'Events', booked: 'Booked', logMeal: 'Log Meal', fittii: 'Fittii Feedback',
   trainer: 'Trainer', checkout: 'Confirm booking', bookingConfirm: 'Booking',
   programDetail: 'Program', profile: 'Profile', history: 'Session history', fittiiFeature: 'Feedback thread',
-  trToday: 'Requests', trSessions: 'Create session', trCoach: 'Coach', trRoster: 'Session roster', trCalendar: 'Calendar', trHours: 'Work hours',
+  trToday: 'Today', trSessions: 'Create session', trCoach: 'Coach', trRoster: 'Session roster', trCalendar: 'Calendar', trHours: 'Work hours',
+  trClients: 'Clients', trClientProfile: 'Client', trPayments: 'Payments',
 }
 
 function Shell() {
@@ -57,6 +61,9 @@ function Shell() {
     case 'trHours': body = <TrainerHoursScreen />; break
     case 'trCalendar': body = <TrainerCalendarScreen />; break
     case 'trRoster': body = <TrainerRosterScreen sessionId={cur.params!.id} />; break
+    case 'trClients': body = <TrainerClientsScreen />; break
+    case 'trClientProfile': body = <TrainerClientProfileScreen clientId={cur.params!.id} />; break
+    case 'trPayments': body = <TrainerPaymentsScreen />; break
   }
 
   const title = cur.name === 'profileDetail' ? (cur.params?.title ?? 'Settings') : TITLES[cur.name]
