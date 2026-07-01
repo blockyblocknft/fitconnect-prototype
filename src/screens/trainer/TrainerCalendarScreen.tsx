@@ -123,7 +123,7 @@ export function TrainerCalendarScreen() {
       {editSession && (
         <SessionFormModal session={editSession}
           onClose={() => setEditSession(null)}
-          onSave={(s) => { updateTrainerSession(s.id, s); setEditSession(null); force((n) => n + 1) }} />
+          onSave={(list) => { updateTrainerSession(list[0].id, list[0]); setEditSession(null); force((n) => n + 1) }} />
       )}
     </div>
   )

@@ -82,11 +82,11 @@ export function TrainerSessionsScreen() {
 
       {form?.mode === 'create' && (
         <SessionFormModal onClose={() => setForm(null)}
-          onSave={(s) => { addTrainerSession(s); setForm(null); rerender() }} />
+          onSave={(list) => { list.forEach(addTrainerSession); setForm(null); rerender() }} />
       )}
       {form?.mode === 'edit' && (
         <SessionFormModal session={form.session} onClose={() => setForm(null)}
-          onSave={(s) => { updateTrainerSession(s.id, s); setForm(null); rerender() }} />
+          onSave={(list) => { updateTrainerSession(list[0].id, list[0]); setForm(null); rerender() }} />
       )}
     </div>
   )

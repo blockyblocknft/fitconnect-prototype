@@ -1,3 +1,5 @@
+import type { SessionType, Discipline } from '../lib/types'
+
 export type Attendance = 'confirmed' | 'attended' | 'noshow'
 export interface RosterClient { id: string; name: string; initials: string; attendance: Attendance }
 export interface TrainerSession {
@@ -9,6 +11,10 @@ export interface TrainerSession {
   place: string
   capacity: number
   clients: RosterClient[]
+  kind?: SessionType         // 1:1 vs group
+  discipline?: Discipline    // focus trained
+  price?: number             // ₹ per client
+  repeatWeeks?: number       // >1 if part of a recurring series
   // Structured scheduling used by the reconciled trainer calendar. Older screens
   // still read `time`/`today`; the calendar reads these.
   program?: string
