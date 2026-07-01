@@ -47,7 +47,7 @@ export function TrainerClientProfileScreen({ clientId }: { clientId: string }) {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
-          <button onClick={() => flash(`Messaging ${c.name} — coming soon`)}
+          <button onClick={() => nav.push({ name: 'trClientChat', params: { id: c.id } })}
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'var(--fc-indigo)', color: '#fff',
               border: 'none', borderRadius: 10, padding: '9px 0', fontSize: 12, fontWeight: 600 }}>
             <Icon name="message-circle" size={14} color="#fff" /> Message

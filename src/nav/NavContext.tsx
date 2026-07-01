@@ -4,9 +4,9 @@ import type { Role } from '../lib/types'
 export type ScreenName =
   | 'sessions' | 'trainer' | 'checkout' | 'bookingConfirm'
   | 'events' | 'booked' | 'programDetail' | 'logMeal' | 'history'
-  | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature'
+  | 'profile' | 'profileDetail' | 'fittii' | 'fittiiFeature' | 'coachChat'
   | 'trToday' | 'trSessions' | 'trCoach' | 'trRoster' | 'trCalendar' | 'trHours'
-  | 'trClients' | 'trClientProfile' | 'trPayments'
+  | 'trClients' | 'trClientProfile' | 'trPayments' | 'trClientChat'
 
 export interface Screen { name: ScreenName; params?: Record<string, string> }
 export type TabKey = 'sessions' | 'events' | 'booked' | 'logMeal' | 'fittii' | 'trToday' | 'trSessions' | 'trCoach' | 'trCalendar' | 'trHours' | 'trClients'

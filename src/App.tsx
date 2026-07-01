@@ -25,14 +25,16 @@ import { TrainerHoursScreen } from './screens/trainer/TrainerHoursScreen'
 import { TrainerClientsScreen } from './screens/trainer/TrainerClientsScreen'
 import { TrainerClientProfileScreen } from './screens/trainer/TrainerClientProfileScreen'
 import { TrainerPaymentsScreen } from './screens/trainer/TrainerPaymentsScreen'
+import { TrainerClientChatScreen } from './screens/trainer/TrainerClientChatScreen'
+import { CoachChatScreen } from './screens/CoachChatScreen'
 
 const TAB_SCREENS = new Set(['sessions', 'events', 'booked', 'logMeal', 'fittii', 'trToday', 'trSessions', 'trCoach', 'trCalendar', 'trHours', 'trClients'])
 const TITLES: Record<string, string> = {
   sessions: 'Book sessions', events: 'Events', booked: 'Booked', logMeal: 'Log Meal', fittii: 'Fittii Feedback',
   trainer: 'Trainer', checkout: 'Confirm booking', bookingConfirm: 'Booking',
-  programDetail: 'Program', profile: 'Profile', history: 'Session history', fittiiFeature: 'Feedback thread',
+  programDetail: 'Program', profile: 'Profile', history: 'Session history', fittiiFeature: 'Feedback thread', coachChat: 'Coach',
   trToday: 'Today', trSessions: 'Create session', trCoach: 'Coach', trRoster: 'Session roster', trCalendar: 'Calendar', trHours: 'Work hours',
-  trClients: 'Clients', trClientProfile: 'Client', trPayments: 'Payments',
+  trClients: 'Clients', trClientProfile: 'Client', trPayments: 'Payments', trClientChat: 'Chat',
 }
 
 function Shell() {
@@ -53,6 +55,7 @@ function Shell() {
     case 'history': body = <HistoryScreen />; break
     case 'profile': body = <ProfileScreen />; break
     case 'profileDetail': body = <ProfileDetailScreen section={cur.params!.section} />; break
+    case 'coachChat': body = <CoachChatScreen />; break
     case 'fittii': body = <FittiiScreen />; break
     case 'fittiiFeature': body = <FittiiFeatureScreen moduleId={cur.params!.moduleId} featureId={cur.params!.featureId} />; break
     case 'trToday': body = <TrainerTodayScreen />; break
@@ -64,6 +67,7 @@ function Shell() {
     case 'trClients': body = <TrainerClientsScreen />; break
     case 'trClientProfile': body = <TrainerClientProfileScreen clientId={cur.params!.id} />; break
     case 'trPayments': body = <TrainerPaymentsScreen />; break
+    case 'trClientChat': body = <TrainerClientChatScreen clientId={cur.params!.id} />; break
   }
 
   const title = cur.name === 'profileDetail' ? (cur.params?.title ?? 'Settings') : TITLES[cur.name]

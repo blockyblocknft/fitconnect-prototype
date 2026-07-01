@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNav } from '../../nav/NavContext'
 import { clients, clientDue, attendancePct, needsAttention, rosterStats, addClient, PLAN_CATALOG, type Client } from '../../data/clients'
 import { STATUS_LABEL } from '../../data/trainerView'
+import { lastMessage, unread } from '../../data/messages'
 import { Icon } from '../../components/Icon'
 
 const rupees = (n: number) => '₹' + n.toLocaleString('en-IN')
@@ -74,7 +75,9 @@ export function TrainerClientsScreen() {
         {list.length === 0 && (
           <div style={{ fontSize: 12, color: 'var(--fc-muted)', textAlign: 'center', padding: 22 }}>No clients match.</div>
         )}
-        {list.map((c) => <ClientRow key={c.id} c={c} onOpen={() => nav.push({ name: 'trClientProfile', params: { id: c.id } })} />)}
+        {list.map((c) => <ClientRow key={c.id} c={c}
+          onOpen={() => nav.push({ name: 'trClientProfile', params: { id: c.id } })}
+          onChat={() => nav.push({ name: 'trClientChat', params: { id: c.id } })} />)}
       </div>
 
       {showAdd && (
@@ -137,14 +140,16 @@ function AddClientModal({ onClose, onAdd }: { onClose: () => void; onAdd: (c: Cl
   )
 }
 
-function ClientRow({ c, onOpen }: { c: Client; onOpen: () => void }) {
+function ClientRow({ c, onOpen, onChat }: { c: Client; onOpen: () => void; onChat: () => void }) {
   const due = clientDue(c)
   const st = STATUS_LABEL[c.nutrition]
+  const last = lastMessage(c.id)
+  const waiting = unread(c.id)
   return (
     <div role="button" tabIndex={0} onClick={onOpen}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen() } }}
       style={{ display: 'flex', alignItems: 'center', gap: 10, background: '#fff', cursor: 'pointer',
-        border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 11, marginBottom: 9 }}>
+        border: waiting ? '0.5px solid rgba(90,74,227,0.5)' : '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 11, marginBottom: 9 }}>
       <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)', flex: '0 0 auto',
         display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 700 }}>{c.initials}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
@@ -152,16 +157,24 @@ function ClientRow({ c, onOpen }: { c: Client; onOpen: () => void }) {
           <span className="fc-display" style={{ fontSize: 13, fontWeight: 700 }}>{c.name}</span>
           {c.live && <span style={{ fontSize: 8, fontWeight: 700, color: 'var(--fc-rating-green)', background: '#E4F3EA', padding: '1px 6px', borderRadius: 999 }}>● LIVE</span>}
         </div>
-        <div style={{ fontSize: 10.5, color: 'var(--fc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {c.plan} · {c.kind === '1to1' ? '1:1' : 'Group'} · {c.mode === 'online' ? 'Online' : 'Outdoor'}
-        </div>
+        {waiting && last
+          ? <div style={{ fontSize: 10.5, color: 'var(--fc-indigo)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <Icon name="message-circle" size={10} color="var(--fc-indigo)" /> {last.text}
+            </div>
+          : <div style={{ fontSize: 10.5, color: 'var(--fc-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {c.plan} · {c.kind === '1to1' ? '1:1' : 'Group'} · {c.mode === 'online' ? 'Online' : 'Outdoor'}
+            </div>}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
           <span style={{ fontSize: 8.5, fontWeight: 600, color: st.fg, background: st.bg, padding: '2px 6px', borderRadius: 999 }}>{st.label}</span>
           <span style={{ fontSize: 9.5, color: 'var(--fc-muted)' }}>{attendancePct(c)}% attend</span>
           {due > 0 && <span style={{ fontSize: 8.5, fontWeight: 700, color: '#A32D2D', background: '#FCEBEB', padding: '2px 6px', borderRadius: 999 }}>₹{due.toLocaleString('en-IN')} due</span>}
         </div>
       </div>
-      <Icon name="chevron-right" size={16} color="var(--fc-muted)" />
+      <button onClick={(e) => { e.stopPropagation(); onChat() }} aria-label={`Chat with ${c.name}`}
+        style={{ position: 'relative', flex: '0 0 auto', background: 'transparent', border: 'none', padding: 4, cursor: 'pointer' }}>
+        <Icon name="message-circle" size={19} color={waiting ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
+        {waiting && <span style={{ position: 'absolute', top: 2, right: 2, width: 8, height: 8, borderRadius: '50%', background: 'var(--fc-coral)', border: '1.5px solid #fff' }} />}
+      </button>
     </div>
   )
 }

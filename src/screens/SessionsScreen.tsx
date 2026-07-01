@@ -76,12 +76,20 @@ export function SessionsScreen() {
           </div>
         </div>
         {coach.bio && <p style={{ fontSize: 12, lineHeight: 1.55, color: 'var(--fc-ink)', margin: '11px 0 0' }}>{coach.bio}</p>}
-        <button onClick={() => { setReqSent(false); setCustomReq(true) }}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, width: '100%', marginTop: 11,
-            background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)', border: 'none', borderRadius: 11,
-            padding: '10px 12px', fontSize: 12.5, fontWeight: 600 }}>
-          <Icon name="calendar-plus" size={15} color="var(--fc-indigo)" /> Request a custom session
-        </button>
+        <div style={{ display: 'flex', gap: 8, marginTop: 11 }}>
+          <button onClick={() => { setReqSent(false); setCustomReq(true) }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)', border: 'none', borderRadius: 11,
+              padding: '10px 12px', fontSize: 12.5, fontWeight: 600 }}>
+            <Icon name="calendar-plus" size={15} color="var(--fc-indigo)" /> Custom session
+          </button>
+          <button onClick={() => nav.push({ name: 'coachChat' })}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 11,
+              padding: '10px 12px', fontSize: 12.5, fontWeight: 600 }}>
+            <Icon name="message-circle" size={15} color="#fff" /> Message coach
+          </button>
+        </div>
         {reqSent && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--fc-rating-green)',
             fontWeight: 600, marginTop: 8 }}>

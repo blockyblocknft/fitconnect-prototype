@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { todayStats, trainerSessions } from '../../data/trainerView'
 import { customRequests, resolveCustomRequest } from '../../data/sessionRequests'
-import { clients, clientDue, rosterStats } from '../../data/clients'
+import { clients, clientDue, rosterStats, getClient } from '../../data/clients'
+import { waitingReplies, lastMessage } from '../../data/messages'
 import { useNav } from '../../nav/NavContext'
 import { Icon } from '../../components/Icon'
 
@@ -21,7 +22,8 @@ export function TrainerTodayScreen() {
   const today = trainerSessions.filter((s) => s.today)
   const dues = clients.filter((c) => clientDue(c) > 0)
   const notLogging = clients.filter((c) => c.nutrition === 'nolog')
-  const needCount = pending.length + dues.length + notLogging.length
+  const replies = waitingReplies().map(getClient).filter((c): c is NonNullable<typeof c> => !!c)
+  const needCount = pending.length + replies.length + dues.length + notLogging.length
 
   const resolve = (id: string, verb: 'confirmed' | 'declined') => {
     resolveCustomRequest(id, verb)
@@ -116,6 +118,10 @@ export function TrainerTodayScreen() {
           <button onClick={(e) => { e.stopPropagation(); resolve(r.id, 'confirmed') }} style={{ background: 'var(--fc-green)', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 9px', fontSize: 10.5, fontWeight: 600 }}>Confirm</button>
           <button onClick={(e) => { e.stopPropagation(); resolve(r.id, 'declined') }} style={{ background: 'transparent', color: '#A32D2D', border: '1px solid #F09595', borderRadius: 8, padding: '6px 9px', fontSize: 10.5, fontWeight: 600 }}>Decline</button>
         </div>, () => openByName(r.client)))}
+
+      {replies.map((c) => actionRow(c.initials, c.name, lastMessage(c.id)?.text ?? 'Sent you a message',
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, color: 'var(--fc-indigo)' }}>Reply <Icon name="chevron-right" size={13} color="var(--fc-indigo)" /></span>,
+        () => nav.push({ name: 'trClientChat', params: { id: c.id } })))}
 
       {dues.map((c) => actionRow(c.initials, `${c.name} · ${rupees(clientDue(c))} due`, c.plan,
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700, color: '#A32D2D' }}>Collect <Icon name="chevron-right" size={13} color="#A32D2D" /></span>,
