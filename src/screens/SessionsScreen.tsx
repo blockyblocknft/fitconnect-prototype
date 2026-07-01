@@ -10,6 +10,8 @@ import { OfferingCard, type Offering } from '../components/cards/OfferingCard'
 import { GroupBookModal } from '../components/GroupBookModal'
 import { RequestSessionModal } from '../components/RequestSessionModal'
 import { clientRequests, type RequestStatus } from '../data/sessionRequests'
+import { clients, clientDue, attendancePct } from '../data/clients'
+import { lastMessage } from '../data/messages'
 import { CapacityBar } from '../components/CapacityBar'
 import { initials } from '../data/profile'
 import { Icon } from '../components/Icon'
@@ -40,6 +42,10 @@ export function SessionsScreen() {
   const [reqSent, setReqSent] = useState(false)
   const coach = trainers[0]
   const myRequests = clientRequests()
+  const me = clients.find((c) => c.live) ?? clients[0]
+  const myDue = clientDue(me)
+  const nextUp = me.attendance.find((a) => a.status === 'upcoming')
+  const coachUnread = lastMessage(me.id)?.from === 'coach'
 
   const focusOk = (d: Discipline | null) => !disc || d === disc
 
@@ -91,16 +97,42 @@ export function SessionsScreen() {
             <Icon name="calendar-plus" size={15} color="var(--fc-indigo)" /> Custom session
           </button>
           <button onClick={() => nav.push({ name: 'coachChat' })}
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            style={{ position: 'relative', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
               background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 11,
               padding: '10px 12px', fontSize: 12.5, fontWeight: 600 }}>
             <Icon name="message-circle" size={15} color="#fff" /> Message coach
+            {coachUnread && <span style={{ position: 'absolute', top: 6, right: 8, width: 9, height: 9, borderRadius: '50%', background: 'var(--fc-coral)', border: '1.5px solid var(--fc-indigo)' }} />}
           </button>
         </div>
         {reqSent && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--fc-rating-green)',
             fontWeight: 600, marginTop: 8 }}>
             <Icon name="circle-check" size={14} color="var(--fc-rating-green)" /> Request sent — {coach.name} will confirm in Booked › Requests.
+          </div>
+        )}
+      </div>
+
+      {/* Your plan — payment, attendance & next session, synced with the coach */}
+      <div style={{ background: '#fff', border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 14, padding: 12, marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 9 }}>
+          <span className="fc-display" style={{ fontSize: 12.5, fontWeight: 700 }}>{me.plan}</span>
+          <span style={{ marginLeft: 'auto', fontSize: 9, fontWeight: 700, borderRadius: 999, padding: '2px 9px',
+            color: myDue > 0 ? '#A32D2D' : 'var(--fc-rating-green)', background: myDue > 0 ? '#FCEBEB' : '#E4F3EA' }}>
+            {myDue > 0 ? `₹${myDue.toLocaleString('en-IN')} balance` : 'Paid up'}
+          </span>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {[['Paid', `₹${me.paid.toLocaleString('en-IN')}`], ['Balance', `₹${myDue.toLocaleString('en-IN')}`], ['Attendance', `${attendancePct(me)}%`]].map(([l, v]) => (
+            <div key={l} style={{ flex: 1, background: 'var(--fc-surface)', borderRadius: 10, padding: '8px 6px', textAlign: 'center' }}>
+              <div className="fc-display fc-tabnum" style={{ fontSize: 13, fontWeight: 700, color: 'var(--fc-indigo)' }}>{v}</div>
+              <div style={{ fontSize: 9.5, color: 'var(--fc-muted)' }}>{l}</div>
+            </div>
+          ))}
+        </div>
+        {nextUp && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: 'var(--fc-muted)', marginTop: 9 }}>
+            <Icon name="calendar" size={13} color="var(--fc-indigo)" />
+            Next: <b style={{ color: 'var(--fc-ink)', fontWeight: 600 }}>{nextUp.session}</b> · {nextUp.date}
           </div>
         )}
       </div>

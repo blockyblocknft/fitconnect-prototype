@@ -8,10 +8,10 @@ describe('SessionsScreen', () => {
   it('opens on the coach profile with 1:1 programs, and switches to group classes', async () => {
     render(<NavProvider><SessionsScreen /></NavProvider>)
     expect(screen.getByText('Aanand R.')).toBeInTheDocument()
-    expect(screen.getByText('12-Week Strength Builder')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Book 12-Week Strength Builder' })).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Group' }))
     expect(screen.getByText('Morning HIIT · on-ground')).toBeInTheDocument()
-    expect(screen.queryByText('12-Week Strength Builder')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Book 12-Week Strength Builder' })).not.toBeInTheDocument()
   })
 
   it('filters 1:1 programs by Online / Outdoor delivery', async () => {
@@ -28,6 +28,6 @@ describe('SessionsScreen', () => {
     render(<NavProvider><SessionsScreen /></NavProvider>)
     await userEvent.click(screen.getByRole('button', { name: 'Mobility' }))
     expect(screen.getByText('Daily mobility flow')).toBeInTheDocument()
-    expect(screen.queryByText('12-Week Strength Builder')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Book 12-Week Strength Builder' })).not.toBeInTheDocument()
   })
 })
