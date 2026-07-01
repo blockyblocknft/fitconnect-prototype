@@ -16,6 +16,14 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
 
   const open = session.capacity - session.clients.length
 
+  const markAll = () => {
+    setMarks((m) => {
+      const n = { ...m }
+      session.clients.forEach((c) => { n[c.id] = 'attended'; c.attendance = 'attended'; markClientAttendance(c.name, session.title, 'attended') })
+      return n
+    })
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, background: 'var(--fc-surface)' }}>
       <div style={{ flex: 1, overflowY: 'auto', padding: 13 }}>
@@ -33,12 +41,19 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 9 }}>
           <span className="fc-display" style={{ fontSize: 12, fontWeight: 600, color: 'var(--fc-muted)' }}>ROSTER</span>
-          <button onClick={() => setShowBook(true)} disabled={open <= 0}
-            style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', borderRadius: 8, padding: '5px 9px',
-              fontSize: 11, fontWeight: 600, background: open > 0 ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)',
-              color: open > 0 ? 'var(--fc-indigo)' : '#B5B5BE' }}>
-            <Icon name="plus" size={13} color={open > 0 ? 'var(--fc-indigo)' : '#B5B5BE'} /> Book a client
-          </button>
+          <div style={{ display: 'flex', gap: 7 }}>
+            <button onClick={markAll}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', borderRadius: 8, padding: '5px 9px',
+                fontSize: 11, fontWeight: 600, background: 'var(--fc-green)', color: '#fff' }}>
+              <Icon name="checks" size={13} color="#fff" /> All present
+            </button>
+            <button onClick={() => setShowBook(true)} disabled={open <= 0}
+              style={{ display: 'flex', alignItems: 'center', gap: 4, border: 'none', borderRadius: 8, padding: '5px 9px',
+                fontSize: 11, fontWeight: 600, background: open > 0 ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)',
+                color: open > 0 ? 'var(--fc-indigo)' : '#B5B5BE' }}>
+              <Icon name="plus" size={13} color={open > 0 ? 'var(--fc-indigo)' : '#B5B5BE'} /> Book
+            </button>
+          </div>
         </div>
 
         {session.clients.map((c) => {
@@ -48,6 +63,7 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
             c.attendance = a // persist on the session roster (Today reads this)
             if (a === 'attended' || a === 'noshow') markClientAttendance(c.name, session.title, a)
           }
+          const cycle = () => set(mark === 'attended' ? 'noshow' : mark === 'noshow' ? 'confirmed' : 'attended')
           const pill = (a: Attendance, label: string, on: string) => (
             <button onClick={() => set(a)} style={{ border: 'none', borderRadius: 8, padding: '6px 10px', fontSize: 11, fontWeight: 600,
               background: mark === a ? on : 'var(--fc-surface)', color: mark === a ? '#fff' : 'var(--fc-muted)' }}>{label}</button>
@@ -55,9 +71,14 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
           return (
             <div key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 9, background: '#fff',
               border: '0.5px solid rgba(20,20,43,0.12)', borderRadius: 12, padding: '9px 11px', marginBottom: 8 }}>
-              <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600 }}>{c.initials}</div>
-              <div style={{ flex: 1, fontSize: 12, fontWeight: 600 }}>{c.name}</div>
+              <div role="button" tabIndex={0} onClick={cycle} onKeyDown={(e) => { if (e.key === 'Enter') cycle() }}
+                style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 1, minWidth: 0, cursor: 'pointer' }}>
+                <div style={{ width: 30, height: 30, borderRadius: '50%', flex: '0 0 auto',
+                  background: mark === 'attended' ? 'var(--fc-green)' : mark === 'noshow' ? '#E24B4A' : 'var(--fc-indigo-tint)',
+                  color: mark === 'confirmed' ? 'var(--fc-indigo)' : '#fff',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600 }}>{c.initials}</div>
+                <div style={{ fontSize: 12, fontWeight: 600 }}>{c.name}</div>
+              </div>
               {pill('attended', 'Attended', 'var(--fc-green)')}
               {pill('noshow', 'No-show', '#E24B4A')}
             </div>
@@ -76,7 +97,7 @@ export function TrainerRosterScreen({ sessionId }: { sessionId: string }) {
       </div>
 
       {showBook && (
-        <BookClientModal excludeIds={session.clients.map((c) => c.id)}
+        <BookClientModal excludeNames={session.clients.map((c) => c.name)}
           onClose={() => setShowBook(false)}
           onPick={(c) => { addClientToSession(session.id, c); setMarks((m) => ({ ...m, [c.id]: 'confirmed' })); setShowBook(false); force((n) => n + 1) }} />
       )}

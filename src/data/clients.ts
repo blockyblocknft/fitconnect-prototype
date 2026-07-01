@@ -91,15 +91,30 @@ export const PLAN_CATALOG: Plan[] = [
   { name: 'Yoga Flow', kind: 'group', mode: 'online', fee: 2000 },
 ]
 
+export function addPlan(p: Plan) {
+  if (!PLAN_CATALOG.some((x) => x.name === p.name)) PLAN_CATALOG.unshift(p)
+}
+
+const initialsOf = (name: string) => name.trim().split(/\s+/).map((w) => w[0] ?? '').slice(0, 2).join('').toUpperCase() || '?'
 let _seq = clients.length
-export function addClient(name: string, planName: string, goal: string): Client {
+export function addClient(name: string, planName: string, goal: string, phone = ''): Client {
   const plan = PLAN_CATALOG.find((p) => p.name === planName) ?? PLAN_CATALOG[0]
-  const initials = name.trim().split(/\s+/).map((w) => w[0] ?? '').slice(0, 2).join('').toUpperCase() || '?'
   const c: Client = {
-    id: `cl${++_seq}`, name: name.trim(), initials, phone: '+91 90000 00000', since: 'Today',
+    id: `cl${++_seq}`, name: name.trim(), initials: initialsOf(name), phone: phone.trim() || '+91 90000 00000', since: 'Today',
     plan: plan.name, kind: plan.kind, mode: plan.mode, goal: goal.trim() || 'General fitness',
     status: 'active', feeTotal: plan.fee, paid: 0, nutrition: 'nolog',
     attendance: [{ date: ago(-2), session: plan.name, status: 'upcoming' }],
+  }
+  clients.unshift(c)
+  return c
+}
+
+// A walk-in / drop-in — added straight from a session roster, no plan yet.
+export function addWalkIn(name: string, phone = ''): Client {
+  const c: Client = {
+    id: `cl${++_seq}`, name: name.trim(), initials: initialsOf(name), phone: phone.trim() || '—', since: 'Today',
+    plan: 'Drop-in', kind: '1to1', mode: 'outdoor', goal: 'Drop-in', status: 'active',
+    feeTotal: 0, paid: 0, nutrition: 'nolog', attendance: [{ date: 'Today', session: 'Drop-in', status: 'upcoming' }],
   }
   clients.unshift(c)
   return c

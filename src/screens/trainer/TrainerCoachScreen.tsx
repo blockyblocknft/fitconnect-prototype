@@ -4,6 +4,8 @@ import { STATUS_LABEL, type CoachPost } from '../../data/trainerView'
 import { coachPrograms, type CoachClient, type CoachSession } from '../../data/coach'
 import { mealDay } from '../../data/meal'
 import { mealLogFor, setDayComment } from '../../data/progress'
+import { clients } from '../../data/clients'
+import { sendMessage } from '../../data/messages'
 import { SegmentedToggle } from '../../components/SegmentedToggle'
 import { Icon } from '../../components/Icon'
 
@@ -232,7 +234,7 @@ export function TrainerCoachScreen() {
                           <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fc-muted)', marginBottom: 8 }}>
                             DAILY MEAL LOG · 30 DAYS · {noted} notes — leave a note per day
                           </div>
-                          <div style={{ maxHeight: 300, overflowY: 'auto', paddingRight: 2 }}>
+                          <div>
                             {log.map((day) => {
                               const key = `${c.id}:${day.id}`
                               const send = () => {
@@ -286,7 +288,10 @@ export function TrainerCoachScreen() {
                 : qs.map((qq) => {
                   const isAns = answered[qq.id] ?? qq.answered
                   const send = () => {
-                    if (!(qDrafts[qq.id] ?? '').trim()) return
+                    const reply = (qDrafts[qq.id] ?? '').trim()
+                    if (!reply) return
+                    const cl = clients.find((x) => x.name === qq.client)
+                    if (cl) sendMessage(cl.id, `Re your question “${qq.question}” — ${reply}`, 'coach')
                     setAnswered((a) => ({ ...a, [qq.id]: true })); setQDrafts((d) => ({ ...d, [qq.id]: '' }))
                   }
                   return (

@@ -5,7 +5,7 @@ import { sendMessage } from '../../data/messages'
 import { STATUS_LABEL } from '../../data/trainerView'
 
 const nudgeText = (first: string) => `Hi ${first} — checking in! How's training going? Drop today's meals in the log and ping me if anything feels off 🙌`
-import { assessments } from '../../data/progress'
+import { assessmentsFor, addAssessment, captureAfterPhoto, setAssessmentNote } from '../../data/progress'
 import { Icon } from '../../components/Icon'
 
 const rupees = (n: number) => '₹' + n.toLocaleString('en-IN')
@@ -128,28 +128,40 @@ export function TrainerClientProfileScreen({ clientId }: { clientId: string }) {
         )}
       </div>
 
-      {/* Assessment */}
+      {/* Assessment — trainer can capture the after-photo, edit the note, add a month */}
       <div style={card}>
         {cardTitle('camera', 'Posture assessment')}
-        {c.live ? assessments.map((a) => (
-          <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 9, paddingTop: 8,
-            borderTop: a.id === assessments[0].id ? 'none' : '0.5px solid rgba(20,20,43,0.07)', marginTop: a.id === assessments[0].id ? 0 : 8 }}>
-            <div style={{ display: 'flex', gap: 4 }}>
-              {[a.hasBefore, a.hasAfter].map((has, i) => (
-                <div key={i} style={{ width: 30, height: 38, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: has ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)', border: has ? 'none' : '1px dashed rgba(20,20,43,0.22)' }}>
-                  <Icon name={has ? 'user-scan' : 'camera-plus'} size={15} color={has ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
-                </div>
-              ))}
+        {(() => {
+          const list = assessmentsFor(c.id)
+          if (list.length === 0) return <div style={{ fontSize: 11.5, color: 'var(--fc-muted)', marginBottom: 10 }}>No posture check on file yet — capture a baseline.</div>
+          return list.map((a, idx) => (
+            <div key={a.id} style={{ display: 'flex', gap: 9, paddingTop: 8, borderTop: idx === 0 ? 'none' : '0.5px solid rgba(20,20,43,0.07)', marginTop: idx === 0 ? 0 : 8 }}>
+              <div style={{ display: 'flex', gap: 4, flex: '0 0 auto' }}>
+                {[{ has: a.hasBefore, label: 'before' }, { has: a.hasAfter, label: 'after' }].map((ph) => (
+                  <button key={ph.label} disabled={ph.has || ph.label === 'before'}
+                    onClick={() => { if (ph.label === 'after' && !ph.has) { captureAfterPhoto(c.id, a.id); force((n) => n + 1) } }}
+                    style={{ width: 30, height: 38, borderRadius: 7, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0,
+                      cursor: !ph.has && ph.label === 'after' ? 'pointer' : 'default',
+                      background: ph.has ? 'var(--fc-indigo-tint)' : 'var(--fc-surface)', border: ph.has ? 'none' : '1px dashed rgba(20,20,43,0.22)' }}>
+                    <Icon name={ph.has ? 'user-scan' : 'camera-plus'} size={15} color={ph.has ? 'var(--fc-indigo)' : 'var(--fc-muted)'} />
+                  </button>
+                ))}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 600 }}>{a.label} · {a.date}{!a.hasAfter && <span style={{ color: 'var(--fc-muted)', fontWeight: 400 }}> · tap + to add after</span>}</div>
+                <input defaultValue={a.note} onBlur={(e) => setAssessmentNote(c.id, a.id, e.target.value)}
+                  placeholder="Note…"
+                  style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', outline: 'none',
+                    fontSize: 10, color: 'var(--fc-muted)', fontFamily: 'var(--fc-font-body)', padding: '2px 0' }} />
+              </div>
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 600 }}>{a.label} · {a.date}</div>
-              <div style={{ fontSize: 10, color: 'var(--fc-muted)', lineHeight: 1.4 }}>{a.note}</div>
-            </div>
-          </div>
-        )) : (
-          <div style={{ fontSize: 11.5, color: 'var(--fc-muted)' }}>No posture check on file yet — capture a baseline this week.</div>
-        )}
+          ))
+        })()}
+        <button onClick={() => { addAssessment(c.id); force((n) => n + 1) }}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, background: 'var(--fc-indigo-tint)', color: 'var(--fc-indigo)',
+            border: 'none', borderRadius: 9, padding: '7px 11px', fontSize: 11.5, fontWeight: 600 }}>
+          <Icon name="camera-plus" size={14} color="var(--fc-indigo)" /> {assessmentsFor(c.id).length ? 'Add this month' : 'Capture baseline'}
+        </button>
       </div>
 
       {/* Coach note */}

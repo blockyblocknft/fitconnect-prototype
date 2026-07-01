@@ -13,12 +13,33 @@ export interface Assessment {
   note: string
 }
 
-export const assessments: Assessment[] = [
+// Posture assessments per client. Seeded for the live client (Prabu / cl1);
+// the trainer can add a month, capture the "after" photo, and edit the note.
+const assessmentRegistry = new Map<string, Assessment[]>([['cl1', [
   { id: 'a1', label: 'Month 1', date: '9 Jun 2026', hasBefore: true, hasAfter: true,
     note: 'Baseline — rounded shoulders, slight anterior pelvic tilt. Start mobility daily.' },
   { id: 'a2', label: 'Month 2', date: '9 Jul 2026', hasBefore: true, hasAfter: false,
     note: 'Shoulders sitting squarer, posture more upright. After-photo due at month end.' },
-]
+]]])
+let _aid = 100
+export function assessmentsFor(clientId: string): Assessment[] {
+  let v = assessmentRegistry.get(clientId)
+  if (!v) { v = []; assessmentRegistry.set(clientId, v) }
+  return v
+}
+export function addAssessment(clientId: string) {
+  const list = assessmentsFor(clientId)
+  list.unshift({ id: `a-${++_aid}`, label: `Month ${list.length + 1}`, date: 'Today', hasBefore: true, hasAfter: false, note: 'Baseline captured today.' })
+}
+export function captureAfterPhoto(clientId: string, id: string) {
+  const a = assessmentsFor(clientId).find((x) => x.id === id); if (a) a.hasAfter = true
+}
+export function setAssessmentNote(clientId: string, id: string, text: string) {
+  const a = assessmentsFor(clientId).find((x) => x.id === id); if (a) a.note = text.trim() || a.note
+}
+
+// The signed-in client (Prabu) reads their own list in the program tab.
+export const assessments: Assessment[] = assessmentsFor('cl1')
 
 export interface LoggedMeal { type: string; name: string; cal: number; comment?: string }
 export interface MealLogDay {

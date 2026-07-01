@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNav } from '../../nav/NavContext'
-import { clients, clientDue, attendancePct, needsAttention, rosterStats, addClient, PLAN_CATALOG, type Client } from '../../data/clients'
+import type { SessionType, TrainingMode } from '../../lib/types'
+import { clients, clientDue, attendancePct, needsAttention, rosterStats, addClient, addPlan, PLAN_CATALOG, type Client } from '../../data/clients'
 import { STATUS_LABEL } from '../../data/trainerView'
 import { lastMessage, unread, waitingReplies } from '../../data/messages'
 import { Icon } from '../../components/Icon'
@@ -79,9 +80,22 @@ export function TrainerClientsScreen() {
       </div>
 
       <div style={{ flex: 1, overflowY: 'auto' }}>
-        {list.length === 0 && (
+        {clients.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '32px 20px' }}>
+            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--fc-indigo-tint)', margin: '0 auto 12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="users-group" size={26} color="var(--fc-indigo)" />
+            </div>
+            <div className="fc-display" style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>No clients yet</div>
+            <div style={{ fontSize: 12, color: 'var(--fc-muted)', lineHeight: 1.5, marginBottom: 14 }}>Add your first client to start tracking sessions, dues and nutrition.</div>
+            <button onClick={() => setShowAdd(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--fc-indigo)', color: '#fff', border: 'none', borderRadius: 11, padding: '10px 16px', fontSize: 13, fontWeight: 600 }}>
+              <Icon name="plus" size={15} color="#fff" /> Add your first client
+            </button>
+          </div>
+        ) : list.length === 0 ? (
           <div style={{ fontSize: 12, color: 'var(--fc-muted)', textAlign: 'center', padding: 22 }}>No clients match.</div>
-        )}
+        ) : null}
         {list.map((c) => <ClientRow key={c.id} c={c}
           onOpen={() => nav.push({ name: 'trClientProfile', params: { id: c.id } })}
           onChat={() => nav.push({ name: 'trClientChat', params: { id: c.id } })} />)}
@@ -99,8 +113,15 @@ function AddClientModal({ onClose, onAdd }: { onClose: () => void; onAdd: (c: Cl
   const [name, setName] = useState('')
   const [plan, setPlan] = useState(PLAN_CATALOG[0].name)
   const [goal, setGoal] = useState('')
+  const [, force] = useState(0)
+  const [newPlan, setNewPlan] = useState<{ name: string; kind: SessionType; mode: TrainingMode; fee: string } | null>(null)
   const sel = PLAN_CATALOG.find((p) => p.name === plan)!
   const ready = name.trim().length > 1
+  const saveNewPlan = () => {
+    if (!newPlan || newPlan.name.trim().length < 2) return
+    const p = { name: newPlan.name.trim(), kind: newPlan.kind, mode: newPlan.mode, fee: Math.max(0, parseInt(newPlan.fee, 10) || 0) }
+    addPlan(p); setPlan(p.name); setNewPlan(null); force((n) => n + 1)
+  }
 
   return (
     <div onClick={onClose} style={{ position: 'absolute', inset: 0, zIndex: 60, background: 'rgba(20,20,43,0.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center' }}>
@@ -133,6 +154,38 @@ function AddClientModal({ onClose, onAdd }: { onClose: () => void; onAdd: (c: Cl
             )
           })}
         </div>
+
+        {newPlan ? (
+          <div style={{ border: '0.5px solid var(--fc-indigo)', borderRadius: 11, padding: 11, marginBottom: 12 }}>
+            <div style={{ fontSize: 10.5, fontWeight: 600, color: 'var(--fc-indigo)', marginBottom: 7 }}>NEW PLAN</div>
+            <input value={newPlan.name} onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })} placeholder="Plan name, e.g. 6-Week Kickstart"
+              style={{ width: '100%', boxSizing: 'border-box', border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 9, padding: '8px 10px', fontSize: 12.5, fontFamily: 'var(--fc-font-body)', outline: 'none', marginBottom: 7 }} />
+            <div style={{ display: 'flex', gap: 7, marginBottom: 7 }}>
+              {(['1to1', 'group'] as SessionType[]).map((k) => (
+                <button key={k} onClick={() => setNewPlan({ ...newPlan, kind: k })}
+                  style={{ flex: 1, border: 'none', borderRadius: 8, padding: '7px 0', fontSize: 11, fontWeight: 600,
+                    background: newPlan.kind === k ? 'var(--fc-indigo)' : 'var(--fc-surface)', color: newPlan.kind === k ? '#fff' : 'var(--fc-muted)' }}>{k === '1to1' ? '1:1' : 'Group'}</button>
+              ))}
+              {(['online', 'outdoor'] as TrainingMode[]).map((m) => (
+                <button key={m} onClick={() => setNewPlan({ ...newPlan, mode: m })}
+                  style={{ flex: 1, border: 'none', borderRadius: 8, padding: '7px 0', fontSize: 11, fontWeight: 600,
+                    background: newPlan.mode === m ? 'var(--fc-indigo)' : 'var(--fc-surface)', color: newPlan.mode === m ? '#fff' : 'var(--fc-muted)' }}>{m === 'online' ? 'Online' : 'Outdoor'}</button>
+              ))}
+            </div>
+            <input value={newPlan.fee} onChange={(e) => setNewPlan({ ...newPlan, fee: e.target.value.replace(/[^\d]/g, '') })} placeholder="Fee (₹)" inputMode="numeric"
+              style={{ width: '100%', boxSizing: 'border-box', border: '0.5px solid rgba(20,20,43,0.18)', borderRadius: 9, padding: '8px 10px', fontSize: 12.5, fontFamily: 'var(--fc-font-body)', outline: 'none', marginBottom: 9 }} />
+            <div style={{ display: 'flex', gap: 7 }}>
+              <button onClick={() => setNewPlan(null)} style={{ flex: '0 0 auto', background: 'var(--fc-surface)', color: 'var(--fc-muted)', border: 'none', borderRadius: 9, padding: '8px 13px', fontSize: 12, fontWeight: 600 }}>Cancel</button>
+              <button onClick={saveNewPlan} disabled={newPlan.name.trim().length < 2}
+                style={{ flex: 1, background: newPlan.name.trim().length >= 2 ? 'var(--fc-indigo)' : 'rgba(90,74,227,0.4)', color: '#fff', border: 'none', borderRadius: 9, padding: 8, fontSize: 12, fontWeight: 600 }}>Save plan</button>
+            </div>
+          </div>
+        ) : (
+          <button onClick={() => setNewPlan({ name: '', kind: '1to1', mode: 'outdoor', fee: '' })}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 13, background: 'transparent', border: 'none', color: 'var(--fc-indigo)', fontSize: 12, fontWeight: 600 }}>
+            <Icon name="plus" size={14} color="var(--fc-indigo)" /> Create a new plan
+          </button>
+        )}
 
         <div style={{ fontSize: 10.5, color: 'var(--fc-muted)', marginBottom: 4 }}>Goal (optional)</div>
         <input value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. Fat loss"
